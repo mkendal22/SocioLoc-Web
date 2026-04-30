@@ -1,36 +1,71 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# SocioLoc — Tanıtım Sitesi
 
-## Getting Started
+Yakınındaki etkinlikleri keşfet, sohbet et, tanış. Bu repo, **SocioLoc** mobil uygulamasının tanıtım odaklı pazarlama sitesidir.
 
-First, run the development server:
+## Yığın
+
+- **Next.js 16** (App Router, Turbopack)
+- **TypeScript**
+- **Tailwind CSS v4** (CSS-first konfig — `src/app/globals.css` içindeki `@theme`)
+- **Framer Motion**
+- **lucide-react** (ikonlar)
+
+## Geliştirme
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run dev          # http://localhost:3000
+npm run build        # production build
+npm start            # production start
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Ortam değişkenleri
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+`.env.local` (opsiyonel):
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+NEXT_PUBLIC_SITE_URL=https://socioloc.app
+```
 
-## Learn More
+`metadataBase`, `robots.ts`, `sitemap.ts` ve JSON-LD bu değeri kullanır.
 
-To learn more about Next.js, take a look at the following resources:
+## Yapı
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```
+src/
+  app/
+    layout.tsx          # global meta, OG, viewport, JSON-LD
+    page.tsx            # ana sayfa
+    globals.css         # Tailwind v4 + brand tokens
+    robots.ts           # /robots.txt
+    sitemap.ts          # /sitemap.xml
+    gizlilik/           # taslak
+    kullanim-kosullari/ # taslak
+    kvkk/               # taslak
+  components/
+    Header.tsx
+    Hero.tsx
+    PhoneMock.tsx       # mockup (görsel olmadan SVG/CSS)
+    Features.tsx
+    HowItWorks.tsx
+    Showcase.tsx
+    Faq.tsx
+    CtaBanner.tsx
+    Footer.tsx
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Yapılacaklar
 
-## Deploy on Vercel
+- [ ] `public/og.png` (1200×630) eklenecek (paylaşım görseli)
+- [ ] `public/apple-icon.png`, `public/icon.png` eklenecek
+- [ ] App Store / Google Play linkleri (`#download` butonlarındaki `href="#"`)
+- [ ] Gizlilik / Kullanım Şartları / KVKK metinleri tamamlanacak
+- [ ] Gerçek istatistikler (`Hero.tsx` → 10K+, 1.2K+, 20+)
+- [ ] Analytics (Plausible / GA4)
+- [ ] Telefon mockup yerine gerçek ekran görüntüleri istenirse `PhoneMock.tsx` yerine `next/image` kullanılabilir
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Vercel'e deploy
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. Bu repoyu GitHub'a push et.
+2. [vercel.com/new](https://vercel.com/new) → repoyu seç → varsayılan ayarlarla deploy.
+3. Custom domain'i (ör. `socioloc.app`) Vercel'de bağla, `NEXT_PUBLIC_SITE_URL` env'ini ayarla.
