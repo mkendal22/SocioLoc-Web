@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { SITE } from "@/lib/config";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -14,10 +15,8 @@ const geistMono = Geist_Mono({
   display: "swap",
 });
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://socioloc.app";
-
 export const metadata: Metadata = {
-  metadataBase: new URL(siteUrl),
+  metadataBase: new URL(SITE.url),
   title: {
     default: "SocioLoc — Yakınındaki etkinlikleri keşfet, tanış, katıl",
     template: "%s | SocioLoc",
@@ -39,7 +38,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "tr_TR",
-    url: siteUrl,
+    url: SITE.url,
     siteName: "SocioLoc",
     title: "SocioLoc — Yakınındaki etkinlikleri keşfet, tanış, katıl",
     description:
@@ -99,7 +98,21 @@ export default function RootLayout({
               operatingSystem: "iOS, ANDROID",
               applicationCategory: "SocialNetworkingApplication",
               offers: { "@type": "Offer", price: "0", priceCurrency: "TRY" },
-              url: siteUrl,
+              url: SITE.url,
+              installUrl: SITE.appStoreUrl,
+              downloadUrl: SITE.googlePlayUrl,
+              email: SITE.email,
+              sameAs: [
+                SITE.social.instagram,
+                SITE.social.x,
+                SITE.social.tiktok,
+                SITE.social.linkedin,
+              ],
+              aggregateRating: {
+                "@type": "AggregateRating",
+                ratingValue: "5.0",
+                ratingCount: "16",
+              },
               description:
                 "Yakınındaki etkinlikleri haritada keşfet, anlık sohbet et, tanış.",
             }),

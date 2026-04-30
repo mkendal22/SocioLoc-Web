@@ -1,13 +1,13 @@
 import type { MetadataRoute } from "next";
-
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://socioloc.app";
+import { SITE } from "@/lib/config";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();
   return [
-    { url: `${siteUrl}/`, lastModified: now, changeFrequency: "weekly", priority: 1.0 },
-    { url: `${siteUrl}/gizlilik`, lastModified: now, changeFrequency: "yearly", priority: 0.4 },
-    { url: `${siteUrl}/kullanim-kosullari`, lastModified: now, changeFrequency: "yearly", priority: 0.4 },
-    { url: `${siteUrl}/kvkk`, lastModified: now, changeFrequency: "yearly", priority: 0.4 },
+    { url: `${SITE.url}/`, lastModified: now, changeFrequency: "weekly", priority: 1.0 },
+    { url: `${SITE.url}/gizlilik`, lastModified: now, changeFrequency: "yearly", priority: 0.4 },
+    { url: `${SITE.url}/kullanim-kosullari`, lastModified: now, changeFrequency: "yearly", priority: 0.4 },
+    { url: `${SITE.url}/kvkk`, lastModified: now, changeFrequency: "yearly", priority: 0.4 },
+    { url: `${SITE.url}/ticari-elektronik-ileti`, lastModified: now, changeFrequency: "yearly", priority: 0.3 },
   ];
 }

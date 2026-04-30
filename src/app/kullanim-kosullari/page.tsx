@@ -1,22 +1,25 @@
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { LegalLayout } from "@/components/LegalLayout";
+import { TERMS } from "@/lib/legal-texts";
 
 export const metadata = {
-  title: "Kullanım Şartları",
-  description: "SocioLoc kullanım şartları.",
+  title: "Kullanım Koşulları",
+  description:
+    "SocioLoc uygulaması ve socioloc.app web sitesi için geçerli kullanım koşulları, sorumluluklar ve uygulanacak hukuk.",
+  alternates: { canonical: "/kullanim-kosullari" },
 };
 
 export default function Page() {
   return (
     <>
       <Header />
-      <main className="flex-1 container-x py-20 max-w-3xl">
-        <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight">Kullanım Şartları</h1>
-        <p className="mt-4 text-white/65">
-          SocioLoc&apos;u kullanarak bu kullanım şartlarını kabul etmiş olursunuz.
-          Tam metin yakında eklenecektir.
-        </p>
-      </main>
+      <LegalLayout
+        title="Kullanım Koşulları"
+        intro="SocioLoc uygulamasını veya web sitesini kullanmadan önce lütfen aşağıdaki kullanım koşullarını okuyunuz. Hizmetimizden yararlanmanız bu koşulları kabul ettiğiniz anlamına gelir."
+        body={TERMS}
+        current="/kullanim-kosullari"
+      />
       <Footer />
     </>
   );

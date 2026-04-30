@@ -1,22 +1,25 @@
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { LegalLayout } from "@/components/LegalLayout";
+import { KVKK } from "@/lib/legal-texts";
 
 export const metadata = {
-  title: "KVKK Aydınlatma Metni",
-  description: "SocioLoc KVKK aydınlatma metni.",
+  title: "KVKK / Açık Rıza Metni",
+  description:
+    "6698 sayılı Kişisel Verilerin Korunması Kanunu kapsamında SocioLoc açık rıza metni ve haklarınız.",
+  alternates: { canonical: "/kvkk" },
 };
 
 export default function Page() {
   return (
     <>
       <Header />
-      <main className="flex-1 container-x py-20 max-w-3xl">
-        <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight">KVKK Aydınlatma Metni</h1>
-        <p className="mt-4 text-white/65">
-          6698 sayılı Kişisel Verilerin Korunması Kanunu kapsamında hazırlanan aydınlatma
-          metninin tam hali yakında eklenecektir.
-        </p>
-      </main>
+      <LegalLayout
+        title="KVKK / Açık Rıza Metni"
+        intro="6698 sayılı Kişisel Verilerin Korunması Kanunu kapsamında, SocioLoc tarafından kişisel verilerinizin işlenmesine ilişkin açık rıza metni."
+        body={KVKK}
+        current="/kvkk"
+      />
       <Footer />
     </>
   );

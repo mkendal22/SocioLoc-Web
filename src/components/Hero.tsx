@@ -1,32 +1,54 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { Apple, Smartphone, Sparkles } from "lucide-react";
-import { PhoneMock } from "./PhoneMock";
+import Image from "next/image";
+import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
+import { Sparkles, Star } from "lucide-react";
+import { useRef } from "react";
+import { Aurora } from "./Aurora";
+import { Spotlight } from "./Spotlight";
+import { Counter } from "./Counter";
+import { StoreBadges } from "./StoreBadges";
 
 export function Hero() {
+  const phoneRef = useRef<HTMLDivElement>(null);
+
+  const mx = useMotionValue(0);
+  const my = useMotionValue(0);
+  const rx = useSpring(useTransform(my, [-1, 1], [10, -10]), { stiffness: 130, damping: 15 });
+  const ry = useSpring(useTransform(mx, [-1, 1], [-10, 10]), { stiffness: 130, damping: 15 });
+  const tx = useSpring(useTransform(mx, [-1, 1], [-12, 12]), { stiffness: 130, damping: 18 });
+  const ty = useSpring(useTransform(my, [-1, 1], [-12, 12]), { stiffness: 130, damping: 18 });
+
+  const handleMouse = (e: React.MouseEvent) => {
+    const el = phoneRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width - 0.5;
+    const y = (e.clientY - rect.top) / rect.height - 0.5;
+    mx.set(x * 2);
+    my.set(y * 2);
+  };
+  const handleLeave = () => { mx.set(0); my.set(0); };
+
   return (
     <section className="relative overflow-hidden">
-      {/* Decorative grid */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 opacity-[0.06]"
-        style={{
-          backgroundImage:
-            "linear-gradient(to right, white 1px, transparent 1px), linear-gradient(to bottom, white 1px, transparent 1px)",
-          backgroundSize: "48px 48px",
-          maskImage:
-            "radial-gradient(ellipse at 50% 0%, black 50%, transparent 80%)",
-        }}
-      />
-      <div className="container-x section-pad pt-28 grid lg:grid-cols-2 gap-12 lg:gap-20 items-center relative">
-        <div>
+      <Aurora />
+      <Spotlight />
+      <div className="absolute inset-0 bg-grid pointer-events-none opacity-50" aria-hidden />
+      <div className="noise" />
+
+      <div className="container-x section-pad pt-20 sm:pt-24 lg:pt-28 grid lg:grid-cols-12 gap-10 lg:gap-12 items-center relative z-10">
+        <div className="lg:col-span-7">
           <motion.span
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/80"
+            className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] backdrop-blur px-3 py-1.5 text-xs text-white/85"
           >
+            <span className="relative flex size-1.5">
+              <span className="absolute inline-flex h-full w-full rounded-full bg-brand-400 opacity-75 animate-ping" />
+              <span className="relative inline-flex rounded-full size-1.5 bg-brand-400" />
+            </span>
             <Sparkles className="size-3.5 text-brand-300" />
             Türkiye’nin sosyal etkinlik ağı
           </motion.span>
@@ -35,10 +57,12 @@ export function Hero() {
             initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.05 }}
-            className="mt-5 text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-tight leading-[1.05] text-balance"
+            className="mt-5 text-[2.5rem] sm:text-6xl lg:text-7xl font-semibold tracking-tight leading-[1] text-balance"
           >
-            <span className="gradient-text">Yakınındaki</span> etkinlikleri keşfet,
-            <br className="hidden sm:block" /> sohbet et,{" "}
+            <span className="gradient-text-shimmer">Yakınındaki</span>
+            <br />
+            etkinlikleri keşfet,
+            <br />
             <span className="gradient-text">tanış.</span>
           </motion.h1>
 
@@ -46,7 +70,7 @@ export function Hero() {
             initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.12 }}
-            className="mt-6 text-lg text-white/70 max-w-xl"
+            className="mt-5 text-base sm:text-lg text-white/65 max-w-xl leading-relaxed"
           >
             SocioLoc; haritadaki etkinlikleri görür, ilgi alanına göre filtreler,
             anlık sohbet ve grupla katıldığın insanlarla gerçek hayatta tanışırsın.
@@ -56,47 +80,94 @@ export function Hero() {
             initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="mt-8 flex flex-wrap items-center gap-3"
+            className="mt-8"
             id="download"
           >
-            <a className="btn-primary" href="#" aria-label="App Store'dan indir">
-              <Apple className="size-5" />
-              App Store
-            </a>
-            <a className="btn-ghost" href="#" aria-label="Google Play'den indir">
-              <Smartphone className="size-5" />
-              Google Play
-            </a>
+            <StoreBadges size="lg" />
           </motion.div>
 
-          {/* Social proof */}
+          {/* Rating + verified badges */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 0.7, delay: 0.35 }}
-            className="mt-10 grid grid-cols-3 gap-6 max-w-md"
+            transition={{ duration: 0.7, delay: 0.3 }}
+            className="mt-8 flex flex-wrap items-center gap-6 text-sm text-white/65"
+          >
+            <div className="flex items-center gap-2">
+              <div className="flex">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <Star key={i} className="size-4 fill-amber-400 text-amber-400" />
+                ))}
+              </div>
+              <span>4.9 / 5</span>
+              <span className="text-white/30">·</span>
+              <span>2.000+ değerlendirme</span>
+            </div>
+          </motion.div>
+
+          {/* Stats */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.7, delay: 0.4 }}
+            className="mt-9 grid grid-cols-3 gap-3 sm:gap-6 max-w-md"
           >
             {[
-              { k: "10K+", v: "kullanıcı" },
-              { k: "1.2K+", v: "etkinlik" },
-              { k: "20+", v: "şehir" },
+              { to: 10000, suffix: "+", v: "kullanıcı" },
+              { to: 1200, suffix: "+", v: "etkinlik" },
+              { to: 25, suffix: "+", v: "şehir" },
             ].map((s) => (
               <div key={s.v}>
-                <div className="text-2xl font-semibold tracking-tight">{s.k}</div>
-                <div className="text-xs text-white/55 mt-1">{s.v}</div>
+                <div className="text-2xl sm:text-3xl lg:text-4xl font-semibold tracking-tight gradient-text">
+                  <Counter to={s.to} suffix={s.suffix} />
+                </div>
+                <div className="text-[11px] sm:text-xs text-white/55 mt-1.5">{s.v}</div>
               </div>
             ))}
           </motion.div>
         </div>
 
+        {/* Phone with parallax tilt */}
         <motion.div
-          initial={{ opacity: 0, y: 20, rotate: -2 }}
-          animate={{ opacity: 1, y: 0, rotate: 0 }}
-          transition={{ duration: 0.8, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
-          className="relative flex justify-center lg:justify-end"
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.9, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
+          className="lg:col-span-5 relative flex justify-center lg:justify-end"
         >
-          <div className="absolute -inset-10 rounded-[40px] bg-gradient-to-tr from-brand-500/30 via-fuchsia-500/15 to-transparent blur-2xl" />
-          <PhoneMock />
+          <div
+            ref={phoneRef}
+            onMouseMove={handleMouse}
+            onMouseLeave={handleLeave}
+            className="relative tilt-3d w-[78%] xs:w-[68%] sm:w-[60%] lg:w-full max-w-[300px] sm:max-w-[340px] lg:max-w-[400px]"
+          >
+            <div className="absolute -inset-12 rounded-[40px] bg-gradient-to-tr from-brand-500/35 via-fuchsia-500/25 to-transparent blur-3xl" aria-hidden />
+
+            <motion.div
+              style={{
+                rotateX: rx,
+                rotateY: ry,
+                x: tx,
+                y: ty,
+                transformStyle: "preserve-3d",
+              }}
+              className="relative aspect-[472/1024] rounded-[36px] overflow-hidden border border-white/10 glow-purple"
+            >
+              <Image
+                src="/screens/02.png"
+                alt="SocioLoc — yakınındaki etkinlikleri haritada keşfet"
+                fill
+                priority
+                sizes="(min-width: 1024px) 400px, 360px"
+                className="object-cover"
+              />
+              {/* shine overlay */}
+              <div
+                aria-hidden
+                className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent"
+              />
+            </motion.div>
+
+          </div>
         </motion.div>
       </div>
     </section>
