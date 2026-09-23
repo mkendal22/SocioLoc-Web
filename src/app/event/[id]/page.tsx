@@ -120,7 +120,9 @@ export default async function EventDetailPage({ params }: Props) {
     location: isDigital
       ? {
           "@type": "VirtualLocation",
-          url: ev.onlineLink || `${SITE.url}/event/${id}`,
+          // Toplantı linki (onlineLink) yalnızca katılımcılara; herkese açık
+          // yapısal veriye sayfanın kendi adresi yazılır.
+          url: `${SITE.url}/event/${id}`,
         }
       : {
           "@type": "Place",
