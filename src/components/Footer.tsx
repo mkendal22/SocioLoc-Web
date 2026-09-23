@@ -54,29 +54,29 @@ export function Footer() {
               </Link>
             </li>
             <li>
-              <a className="hover:text-white transition-colors" href="/#features">
+              <Link className="hover:text-white transition-colors" href="/#features">
                 Özellikler
-              </a>
+              </Link>
             </li>
             <li>
-              <a className="hover:text-white transition-colors" href="/#how">
+              <Link className="hover:text-white transition-colors" href="/#how">
                 Nasıl çalışır
-              </a>
+              </Link>
             </li>
             <li>
-              <a className="hover:text-white transition-colors" href="/#showcase">
+              <Link className="hover:text-white transition-colors" href="/#showcase">
                 Uygulama
-              </a>
+              </Link>
             </li>
             <li>
-              <a className="hover:text-white transition-colors" href="/#business">
+              <Link className="hover:text-white transition-colors" href="/#business">
                 İşletmeler
-              </a>
+              </Link>
             </li>
             <li>
-              <a className="hover:text-white transition-colors" href="/#faq">
+              <Link className="hover:text-white transition-colors" href="/#faq">
                 SSS
-              </a>
+              </Link>
             </li>
           </ul>
         </div>
@@ -158,16 +158,17 @@ export function Footer() {
         <div className="container-x py-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-white/45">
           <p className="sm:min-w-[200px]">© {year} SocioLoc. Tüm hakları saklıdır.</p>
           <div className="rounded-xl bg-white px-3 py-2 shadow-[0_8px_24px_-12px_rgba(0,0,0,0.45)]">
-            <img
+            <Image
               src="/payments/logo_band_colored.svg"
               alt="iyzico ile Öde — Mastercard, Visa, American Express, Troy"
               width={429}
               height={32}
+              unoptimized
               className="h-7 w-auto max-w-[min(100%,280px)] sm:max-w-[320px]"
             />
           </div>
           <p className="sm:min-w-[200px] sm:text-right">
-            Türkiye'de tasarlandı ve geliştirildi · v{" "}
+            Türkiye’de tasarlandı ve geliştirildi · v{" "}
             <span className="text-white/60">1.0.6</span>
           </p>
         </div>

@@ -234,7 +234,7 @@ export function Showcase() {
             transition={{ duration: 0.6, delay: 0.15 }}
             className="mt-4 text-white/65 text-balance"
           >
-            Keşiften katılmaya, sohbetten hatıraya ve güvene kadar — her adımı SocioLoc'ta yaşa.
+            Keşiften katılmaya, sohbetten hatıraya ve güvene kadar — her adımı SocioLoc’ta yaşa.
           </motion.p>
         </div>
 
