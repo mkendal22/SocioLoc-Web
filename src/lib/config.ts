@@ -1,10 +1,17 @@
 /**
  * Birincil (canonical) adres. socioloc.app → www.socioloc.app yönlendirilir;
  * canonical, sitemap, OG ve paylaşım linkleri hep bu adresi kullanır.
+ * next.config.ts de buradan okur. Boş ya da protokolsüz değer
+ * ("www.socioloc.app") new URL()'i ve dolayısıyla build'i çökertmesin diye
+ * normalize edilir.
  */
-const SITE_URL = (
-  process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.socioloc.app"
-).replace(/\/+$/, "");
+export function resolveSiteUrl(raw = process.env.NEXT_PUBLIC_SITE_URL): string {
+  const value = raw?.trim() || "https://www.socioloc.app";
+  const withProtocol = /^https?:\/\//i.test(value) ? value : `https://${value}`;
+  return withProtocol.replace(/\/+$/, "");
+}
+
+const SITE_URL = resolveSiteUrl();
 
 export const SITE = {
   name: "SocioLoc",

@@ -1,9 +1,8 @@
 import type { NextConfig } from "next";
+import { SITE } from "./src/lib/config";
 
-// Birincil adres (src/lib/config.ts ile aynı kaynak).
-const SITE_URL = (
-  process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.socioloc.app"
-).replace(/\/+$/, "");
+// Birincil adres: tek kaynak src/lib/config.ts.
+const SITE_URL = SITE.url;
 const CANONICAL_HOST = new URL(SITE_URL).host;
 const APEX_HOST = CANONICAL_HOST.replace(/^www\./, "");
 
@@ -46,7 +45,7 @@ const nextConfig: NextConfig = {
         // alan adında da doğrudan 200 dönmeli. Vercel'de apex alan adı
         // "Redirect" yerine doğrudan bu projeye bağlandığında devreye girer.
         source: "/:path((?!\\.well-known/).*)",
-        has: [{ type: "host", value: APEX_HOST }],
+        has: [{ type: "host", value: APEX_HOST.replace(/\./g, "\\.") }],
         destination: `${SITE_URL}/:path`,
         permanent: true,
       },
