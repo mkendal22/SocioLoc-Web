@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Calendar, MapPin, Users, Video } from "lucide-react";
 import { allParticipantCount, type EventModel } from "@/lib/events/types";
+import { parseWallDate } from "@/lib/time";
 
 const TR_MONTHS_SHORT = [
   "Oca",
@@ -18,17 +19,12 @@ const TR_MONTHS_SHORT = [
 ];
 
 function formatEventDate(rawDate: string, rawTime: string): string {
-  if (!rawDate) return "";
-  try {
-    const dt = new Date(rawDate);
-    if (Number.isNaN(dt.getTime())) return "";
-    const month = TR_MONTHS_SHORT[dt.getMonth()];
-    let out = `${dt.getDate()} ${month}`;
-    if (rawTime) out += `, ${rawTime}`;
-    return out;
-  } catch {
-    return "";
-  }
+  // Türkiye takvim günü: sunucu (UTC) ve tarayıcı aynı metni üretir.
+  const wall = parseWallDate(rawDate);
+  if (!wall) return "";
+  let out = `${wall.day} ${TR_MONTHS_SHORT[wall.month - 1]}`;
+  if (rawTime) out += `, ${rawTime}`;
+  return out;
 }
 
 function formatLocation(loc: string): string {

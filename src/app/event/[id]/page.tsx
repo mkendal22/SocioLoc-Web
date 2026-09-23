@@ -8,6 +8,7 @@ import { OpenInAppBanner } from "@/components/events/OpenInAppBanner";
 import { fetchEventById } from "@/lib/events/fetch";
 import { allParticipantCount, parseEventStart, type EventModel } from "@/lib/events/types";
 import { SITE } from "@/lib/config";
+import { parseWallDate, toIstanbulISO } from "@/lib/time";
 
 export const revalidate = 60;
 
@@ -31,14 +32,10 @@ const TR_MONTHS = [
 ];
 
 function formatDateLong(rawDate: string): string {
-  if (!rawDate) return "";
-  try {
-    const dt = new Date(rawDate);
-    if (Number.isNaN(dt.getTime())) return "";
-    return `${dt.getDate()} ${TR_MONTHS[dt.getMonth()]} ${dt.getFullYear()}`;
-  } catch {
-    return "";
-  }
+  // Türkiye takvim günü; sunucunun (UTC) saat diliminden bağımsız.
+  const wall = parseWallDate(rawDate);
+  if (!wall) return "";
+  return `${wall.day} ${TR_MONTHS[wall.month - 1]} ${wall.year}`;
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -113,7 +110,8 @@ export default async function EventDetailPage({ params }: Props) {
     "@type": "Event",
     name: ev.title || "Etkinlik",
     description: ev.description || undefined,
-    startDate: start?.toISOString(),
+    // Ofsetli Türkiye saati: "2026-09-23T20:00:00+03:00"
+    startDate: start ? toIstanbulISO(start) : undefined,
     image: imageUrl ? [imageUrl] : undefined,
     eventAttendanceMode: isDigital
       ? "https://schema.org/OnlineEventAttendanceMode"

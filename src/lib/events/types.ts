@@ -1,3 +1,5 @@
+import { eventStartInstant } from "@/lib/time";
+
 export type EventGeoPoint = {
   latitude: number;
   longitude: number;
@@ -127,39 +129,10 @@ export function allParticipantCount(e: EventModel): number {
   return allParticipants(e).length;
 }
 
-/** `date` (YYYY-MM-DD veya DD.MM.YYYY veya ISO) + `time` (HH:mm) → Date. */
-export function parseEventStart(e: EventModel): Date | null {
-  if (!e.date) return null;
-  try {
-    let dt: Date;
-    if (e.date.includes("T")) {
-      dt = new Date(e.date);
-    } else if (e.date.includes(".")) {
-      const p = e.date.split(".");
-      dt = new Date(
-        parseInt(p[2], 10),
-        parseInt(p[1], 10) - 1,
-        parseInt(p[0], 10),
-      );
-    } else {
-      dt = new Date(e.date);
-    }
-    if (Number.isNaN(dt.getTime())) return null;
-
-    if (e.time) {
-      const tp = e.time.split(":");
-      if (tp.length >= 2) {
-        dt = new Date(
-          dt.getFullYear(),
-          dt.getMonth(),
-          dt.getDate(),
-          parseInt(tp[0], 10),
-          parseInt(tp[1], 10),
-        );
-      }
-    }
-    return dt;
-  } catch {
-    return null;
-  }
+/**
+ * `date` (YYYY-MM-DD, DD.MM.YYYY veya ISO) + `time` (HH:mm) → başlangıç anı.
+ * Saatler Türkiye saatiyle yorumlanır; sunucunun saat diliminden bağımsızdır.
+ */
+export function parseEventStart(e: { date: string; time: string }): Date | null {
+  return eventStartInstant(e.date, e.time);
 }

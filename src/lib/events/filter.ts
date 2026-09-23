@@ -1,4 +1,10 @@
-import { parseEventStart, type EventModel } from "./types";
+import {
+  dayNumber,
+  isoWeekday,
+  istanbulWallDate,
+  parseWallDate,
+} from "@/lib/time";
+import { parseEventStart } from "./types";
 
 export type DateFilter =
   | "Tümü"
@@ -9,6 +15,16 @@ export type DateFilter =
   | "Bu hafta"
   | "Bu ay";
 
+/** Filtrelemenin ihtiyaç duyduğu alanlar (EventModel ve PublicEvent ikisi de sağlar). */
+export interface FilterableEvent {
+  title: string;
+  description: string;
+  date: string;
+  time: string;
+  eventType: string;
+  category: string | null;
+}
+
 export interface EventFilterParams {
   searchQuery?: string;
   selectedDateFilter?: DateFilter;
@@ -18,13 +34,15 @@ export interface EventFilterParams {
   filterTimeEnd?: string | null;
   /** "expired" eventleri kaç gün sonra gizle (mobilde 3 gün). */
   expireGraceDays?: number;
+  /** Test ve önbellek için sabitlenebilir "şimdi". */
+  now?: Date;
 }
 
-/** Mobilden 1-1 port edilmiş filtre + (mesafe yoksa) varsayılan sıralama (createdAt desc). */
-export function applyFilters(
-  events: EventModel[],
+/** Mobilden 1-1 port edilmiş filtre. Takvim hesapları Türkiye saatine göre. */
+export function applyFilters<T extends FilterableEvent>(
+  events: T[],
   params: EventFilterParams = {},
-): EventModel[] {
+): T[] {
   const {
     searchQuery = "",
     selectedDateFilter = "Tümü",
@@ -33,10 +51,10 @@ export function applyFilters(
     filterTimeStart = null,
     filterTimeEnd = null,
     expireGraceDays = 3,
+    now = new Date(),
   } = params;
 
-  const now = new Date();
-  const search = searchQuery.trim().toLowerCase();
+  const search = searchQuery.trim().toLocaleLowerCase("tr-TR");
 
   const filtered = events.filter((data) => {
     // Süresi geçmiş etkinlikleri grace gün sonra gizle (tarih DD.MM.YYYY / ISO)
@@ -47,8 +65,8 @@ export function applyFilters(
     }
 
     if (search) {
-      const title = (data.title || "").toLowerCase();
-      const desc = (data.description || "").toLowerCase();
+      const title = (data.title || "").toLocaleLowerCase("tr-TR");
+      const desc = (data.description || "").toLocaleLowerCase("tr-TR");
       if (!title.includes(search) && !desc.includes(search)) return false;
     }
 
@@ -61,7 +79,7 @@ export function applyFilters(
     }
 
     if (selectedDateFilter && selectedDateFilter !== "Tümü") {
-      if (!matchesDateFilter(data.date, selectedDateFilter)) return false;
+      if (!matchesDateFilter(data.date, selectedDateFilter, now)) return false;
     }
 
     if (selectedCategories && selectedCategories.size > 0) {
@@ -93,76 +111,52 @@ function matchesTimeRange(rawTime: string, start: string, end: string): boolean 
   }
 }
 
-function matchesDateFilter(rawDate: string, filter: DateFilter): boolean {
-  if (!rawDate) return false;
-  try {
-    const eventDate = new Date(rawDate);
-    if (Number.isNaN(eventDate.getTime())) return false;
-    const eventOnly = startOfDay(eventDate);
-    const today = startOfDay(new Date());
+function matchesDateFilter(rawDate: string, filter: DateFilter, now: Date): boolean {
+  const wall = parseWallDate(rawDate);
+  if (!wall) return false;
 
-    let start: Date | null = null;
-    let end: Date | null = null;
+  const eventDay = dayNumber(wall);
+  const todayWall = istanbulWallDate(now);
+  const today = dayNumber(todayWall);
+  // Pazartesi=1 ... Pazar=7 (Dart weekday)
+  const wd = isoWeekday(todayWall);
 
-    switch (filter) {
-      case "Yaklaşan":
-        start = today;
-        end = addDays(today, 7);
-        break;
-      case "Bugün":
-        start = today;
-        end = addDays(start, 1);
-        break;
-      case "Yarın":
-        start = addDays(today, 1);
-        end = addDays(start, 1);
-        break;
-      case "Bu hafta sonu": {
-        const wd = new Date().getDay() === 0 ? 7 : new Date().getDay();
-        // Pazartesi=1 ... Pazar=7 (Dart weekday)
-        if (wd >= 6) {
-          start = addDays(today, -(wd - 6));
-        } else {
-          start = addDays(today, 6 - wd);
-        }
-        end = addDays(start, 2);
-        break;
-      }
-      case "Bu hafta": {
-        const wd = new Date().getDay() === 0 ? 7 : new Date().getDay();
-        const daysFromMon = wd - 1;
-        start = addDays(today, -daysFromMon);
-        end = addDays(start, 7);
-        break;
-      }
-      case "Bu ay": {
-        const t = new Date();
-        start = new Date(t.getFullYear(), t.getMonth(), 1);
-        end =
-          t.getMonth() === 11
-            ? new Date(t.getFullYear() + 1, 0, 1)
-            : new Date(t.getFullYear(), t.getMonth() + 1, 1);
-        break;
-      }
-      default:
-        return true;
+  let start: number;
+  let end: number;
+
+  switch (filter) {
+    case "Yaklaşan":
+      start = today;
+      end = today + 7;
+      break;
+    case "Bugün":
+      start = today;
+      end = today + 1;
+      break;
+    case "Yarın":
+      start = today + 1;
+      end = today + 2;
+      break;
+    case "Bu hafta sonu":
+      start = wd >= 6 ? today - (wd - 6) : today + (6 - wd);
+      end = start + 2;
+      break;
+    case "Bu hafta":
+      start = today - (wd - 1);
+      end = start + 7;
+      break;
+    case "Bu ay": {
+      const { year, month } = todayWall;
+      start = dayNumber({ year, month, day: 1 });
+      end =
+        month === 12
+          ? dayNumber({ year: year + 1, month: 1, day: 1 })
+          : dayNumber({ year, month: month + 1, day: 1 });
+      break;
     }
-
-    if (!start || !end) return true;
-    const sOnly = startOfDay(start);
-    const eOnly = startOfDay(end);
-    return eventOnly.getTime() >= sOnly.getTime() && eventOnly.getTime() < eOnly.getTime();
-  } catch {
-    return false;
+    default:
+      return true;
   }
-}
 
-function startOfDay(d: Date): Date {
-  return new Date(d.getFullYear(), d.getMonth(), d.getDate());
-}
-
-function addDays(d: Date, n: number): Date {
-  const r = new Date(d);
-  r.setDate(r.getDate() + n);
-  return r;
+  return eventDay >= start && eventDay < end;
 }
