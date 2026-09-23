@@ -62,33 +62,59 @@ function parseFrontmatter(raw: string) {
   if (!m) return { data, body: raw };
   for (const line of m[1].split("\n")) {
     const i = line.indexOf(":");
-    if (i > 0) data[line.slice(0, i).trim()] = line.slice(i + 1).trim();
+    if (i > 0) {
+      // title: "..." gibi tırnaklı yazımlar da kabul edilir.
+      const value = line.slice(i + 1).trim().replace(/^(["'])(.*)\1$/, "$2");
+      data[line.slice(0, i).trim()] = value;
+    }
   }
   return { data, body: raw.slice(m[0].length) };
 }
 
-export function getLegalDoc(slug: LegalSlug): LegalDoc {
-  const file = path.join(process.cwd(), "content", "legal", `${slug}.md`);
-  const { data, body } = parseFrontmatter(readFileSync(file, "utf8"));
+/**
+ * Ham Markdown'u (frontmatter dahil) işler. `name` hata mesajları içindir.
+ * Dosyadan bağımsız olduğu için testte doğrudan kullanılır.
+ */
+export function renderLegalMarkdown(
+  name: string,
+  raw: string,
+): Omit<LegalDoc, "slug"> {
+  // Windows'ta düzenlenen dosyalar: BOM ve CRLF satır sonları normalize edilir.
+  const text = raw.replace(/^\uFEFF/, "").replace(/\r\n?/g, "\n");
+  const { data, body } = parseFrontmatter(text);
+
+  // Eksik üst bilgi build sırasında yakalansın (sayfa başlıksız yayınlanmasın).
+  for (const key of ["title", "updated"] as const) {
+    if (!data[key]) throw new Error(`${name}: frontmatter'da "${key}" eksik`);
+  }
 
   const values = placeholders();
-  const source = body.replace(/\{\{(\w+)\}\}/g, (_, key: string) => {
-    const value = values[key];
-    // Yazım hatası build sırasında yakalansın, sayfaya "{{...}}" çıkmasın.
-    if (value === undefined) {
-      throw new Error(`content/legal/${slug}.md: bilinmeyen yer tutucu {{${key}}}`);
+  // Boşluklu ({{ kunye }}) ve Türkçe karakterli ({{künye}}) yazımlar da
+  // yakalanır; bilinmeyen anahtar build'i durdurur.
+  const source = body.replace(/\{\{\s*([^{}]*?)\s*\}\}/g, (_, key: string) => {
+    if (!Object.hasOwn(values, key)) {
+      throw new Error(`${name}: bilinmeyen yer tutucu {{${key}}}`);
     }
-    return value;
+    return values[key];
   });
+  // Kapanmamış ya da bozuk yer tutucu ({{kunye}, {kunye}}) sayfaya çıkmasın.
+  if (/\{\{|\}\}/.test(source)) {
+    throw new Error(`${name}: kapanmamış yer tutucu ("{{" ya da "}}")`);
+  }
 
   return {
-    slug,
-    title: data.title ?? "",
+    title: data.title,
     description: data.description ?? "",
     intro: data.intro ?? "",
-    updated: data.updated ?? "",
+    updated: data.updated,
     html: markdown.parse(source, { async: false }),
   };
+}
+
+export function getLegalDoc(slug: LegalSlug): LegalDoc {
+  const file = path.join(process.cwd(), "content", "legal", `${slug}.md`);
+  const doc = renderLegalMarkdown(`content/legal/${slug}.md`, readFileSync(file, "utf8"));
+  return { slug, ...doc };
 }
 
 export function legalMetadata(slug: LegalSlug): Metadata {
