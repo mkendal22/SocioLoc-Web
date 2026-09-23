@@ -28,6 +28,29 @@ export const metadata: Metadata = {
   },
 };
 
+/**
+ * Listeyi sunucuda filtreler, sıralar ve herkese açık alanlara indirger.
+ * `renderedAt`, EventsExplorer'ın hydration'ında da aynı "şimdi" kullanılsın
+ * diye döner (ISR sayfası dakikalar önce üretilmiş olabilir).
+ */
+async function loadEvents(): Promise<{ events: PublicEvent[]; renderedAt: number }> {
+  // Okuma hatası üretimde fırlatılır (fetch.ts → STRICT): Next son başarılı
+  // sayfayı sunmaya devam eder, boş liste önbelleğe girmez.
+  const all = await fetchAllEvents(300);
+  const renderedAt = Date.now();
+  const now = new Date(renderedAt);
+  // Default filtreler: süresi geçmiş 3 günden eski gizli, eventType filtresi yok
+  const filtered = applyFilters(all, { selectedDateFilter: "Tümü", now });
+  // Tarayıcıya yalnızca herkese açık alanlar gider (UID, konum, link yok).
+  const events = rankEvents(filtered, { now }).map(toPublicEvent);
+  if (process.env.NODE_ENV === "development") {
+    console.info(
+      `[etkinlikler] Firestore: ham=${all.length}, filtre sonrası=${filtered.length}, sıralı=${events.length}`,
+    );
+  }
+  return { events, renderedAt };
+}
+
 export default async function EtkinliklerPage() {
   const b64Len =
     process.env.FIREBASE_SERVICE_ACCOUNT_BASE64?.replace(/\s/g, "").length ?? 0;
@@ -40,22 +63,7 @@ export default async function EtkinliklerPage() {
   const showDevAdminHint =
     process.env.NODE_ENV === "development" && !serverAdminConfigured;
 
-  let events: PublicEvent[] = [];
-  try {
-    const all = await fetchAllEvents(300);
-    // Default filtreler: süresi geçmiş 3 günden eski gizli, eventType filtresi yok
-    const filtered = applyFilters(all, { selectedDateFilter: "Tümü" });
-    // Tarayıcıya yalnızca herkese açık alanlar gider (UID, konum, link yok).
-    events = rankEvents(filtered).map(toPublicEvent);
-    if (process.env.NODE_ENV === "development") {
-      console.info(
-        `[etkinlikler] Firestore: ham=${all.length}, filtre sonrası=${filtered.length}, sıralı=${events.length}`,
-      );
-    }
-  } catch (e) {
-    console.error("[etkinlikler] fetch error", e);
-    events = [];
-  }
+  const { events, renderedAt } = await loadEvents();
 
   return (
     <>
@@ -85,6 +93,7 @@ export default async function EtkinliklerPage() {
           <div className="container-x">
             <EventsExplorer
               initialEvents={events}
+              renderedAt={renderedAt}
               showDevAdminHint={showDevAdminHint}
             />
           </div>

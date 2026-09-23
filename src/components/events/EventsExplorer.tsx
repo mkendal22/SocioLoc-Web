@@ -1,6 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import { Search, SlidersHorizontal, X } from "lucide-react";
 import { EventCard } from "@/components/events/EventCard";
 import { applyFilters, type DateFilter } from "@/lib/events/filter";
@@ -67,12 +73,30 @@ const TYPE_FILTERS: { id: "all" | "Mekan" | "Dijital"; label: string }[] = [
 
 const PAGE_SIZE = 20;
 
+/**
+ * Filtrelerin kullandığı "şimdi". Sayfa ISR ile önbelleklendiği için dakikalar,
+ * hatta saatler önce üretilmiş olabilir: hydration sırasında sunucunun
+ * kullandığı an (renderedAt) kullanılır ki ilk boyama sunucu HTML'iyle aynı
+ * olsun; ardından tarayıcı saatine geçilir ve dakikada bir tazelenir.
+ */
+function subscribeMinute(onChange: () => void) {
+  const id = window.setInterval(onChange, 60_000);
+  return () => window.clearInterval(id);
+}
+
+function currentMinute() {
+  return Math.floor(Date.now() / 60_000) * 60_000;
+}
+
 export function EventsExplorer({
   initialEvents,
+  renderedAt,
   showDevAdminHint = false,
 }: {
   /** Sunucuda sıralanmış, herkese açık alanlara indirgenmiş liste. */
   initialEvents: PublicEvent[];
+  /** Sunucunun listeyi filtrelediği an (ms). */
+  renderedAt: number;
   /** Yerel: servis hesabı yoksa boş liste + kurulum ipucu */
   showDevAdminHint?: boolean;
 }) {
@@ -83,6 +107,12 @@ export function EventsExplorer({
   );
   const [visible, setVisible] = useState(PAGE_SIZE);
 
+  const nowMs = useSyncExternalStore(
+    subscribeMinute,
+    currentMinute,
+    () => renderedAt,
+  );
+
   // Sıralama sunucuda yapıldı; filtre sırayı korur.
   const filtered = useMemo(
     () =>
@@ -90,8 +120,9 @@ export function EventsExplorer({
         searchQuery: query,
         selectedDateFilter: dateFilter,
         eventType: typeFilter === "all" ? null : typeFilter,
+        now: new Date(nowMs),
       }),
-    [initialEvents, query, dateFilter, typeFilter],
+    [initialEvents, query, dateFilter, typeFilter, nowMs],
   );
 
   const hasFilters =
