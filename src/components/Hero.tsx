@@ -140,7 +140,7 @@ export function Hero() {
               className="relative aspect-[472/1024] rounded-[36px] overflow-hidden border border-white/10 glow-purple"
             >
               <Image
-                src="/screens/02.png"
+                src="/screens/02.webp"
                 alt="SocioLoc — yakınındaki etkinlikleri haritada keşfet"
                 fill
                 priority
