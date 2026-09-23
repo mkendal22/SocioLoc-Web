@@ -10,8 +10,8 @@ import { toPublicEvent } from "@/lib/events/public";
 import type { PublicEvent } from "@/lib/events/types";
 import { SITE } from "@/lib/config";
 
-/** Boş önbellek / build anı: her istekte Firestore'dan taze veri. */
-export const dynamic = "force-dynamic";
+/** Her istekte değil, en fazla 60 sn'de bir Firestore'dan tazelenir (ISR). */
+export const revalidate = 60;
 
 export const metadata: Metadata = {
   title: "Etkinlikler — Yakındaki sosyal etkinlikleri keşfet",
@@ -42,7 +42,7 @@ export default async function EtkinliklerPage() {
 
   let events: PublicEvent[] = [];
   try {
-    const all = await fetchAllEvents(500);
+    const all = await fetchAllEvents(300);
     // Default filtreler: süresi geçmiş 3 günden eski gizli, eventType filtresi yok
     const filtered = applyFilters(all, { selectedDateFilter: "Tümü" });
     // Tarayıcıya yalnızca herkese açık alanlar gider (UID, konum, link yok).

@@ -5,6 +5,7 @@ import {
   getDoc,
   getDocs,
   limit,
+  orderBy,
   query,
   type DocumentData,
 } from "firebase/firestore";
@@ -24,7 +25,9 @@ function sortByCreatedAtDesc(events: EventModel[]): EventModel[] {
 
 async function fetchAllEventsClient(max: number): Promise<EventModel[]> {
   const db = getDb();
-  const snap = await getDocs(query(collection(db, COLL), limit(max)));
+  const snap = await getDocs(
+    query(collection(db, COLL), orderBy("createdAt", "desc"), limit(max)),
+  );
   const list = snap.docs.map((d) =>
     eventFromMap(d.data() as DocumentData, d.id),
   );
@@ -32,16 +35,23 @@ async function fetchAllEventsClient(max: number): Promise<EventModel[]> {
 }
 
 /**
- * Etkinlikleri çeker (en fazla [max] doküman).
+ * En yeni etkinlikleri çeker (createdAt'e göre azalan, en fazla [max] doküman).
+ * Sırasız limit Firestore'da doküman ID sırasıyla (pratikte rastgele) döner;
+ * koleksiyon büyüyünce yeni etkinlikler listeden düşerdi. `createdAt` alanı
+ * olmayan (çok eski) dokümanlar bu sorguya girmez.
  *
  * **Firebase Admin** tanımlıysa sunucuda HTTP ile okur (Node’da gRPC client hatası olmaz).
  * Tanımlı değilse veya hata olursa istemci SDK kullanılır.
  */
-export async function fetchAllEvents(max = 500): Promise<EventModel[]> {
+export async function fetchAllEvents(max = 300): Promise<EventModel[]> {
   const adb = getAdminFirestore();
   if (adb) {
     try {
-      const snap = await adb.collection(COLL).limit(max).get();
+      const snap = await adb
+        .collection(COLL)
+        .orderBy("createdAt", "desc")
+        .limit(max)
+        .get();
       const list = snap.docs.map((d) =>
         eventFromMap(d.data() as Record<string, unknown>, d.id),
       );
