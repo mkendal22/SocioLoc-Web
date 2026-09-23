@@ -70,7 +70,7 @@ export function LegalLayout({ title, intro, body, current, updated }: Props) {
                 );
               })}
               <div className="mt-2 px-3.5 py-3 border-t border-white/[0.06]">
-                <p className="text-xs text-white/45">İletişim</p>
+                <p className="text-xs text-white/60">İletişim</p>
                 <a
                   href={`mailto:${SITE.email}`}
                   className="mt-1 inline-flex items-center gap-2 text-xs text-white/85 hover:text-white"
@@ -163,7 +163,7 @@ export function LegalLayout({ title, intro, body, current, updated }: Props) {
                 })}
               </div>
 
-              <div className="mt-12 pt-6 border-t border-white/10 flex items-center justify-between text-xs text-white/45">
+              <div className="mt-12 pt-6 border-t border-white/10 flex items-center justify-between text-xs text-white/60">
                 <p>© {new Date().getFullYear()} SocioLoc</p>
                 <a
                   href={`mailto:${SITE.email}`}

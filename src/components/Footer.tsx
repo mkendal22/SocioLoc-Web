@@ -155,7 +155,7 @@ export function Footer() {
       </div>
 
       <div className="border-t border-white/[0.05]">
-        <div className="container-x py-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-white/45">
+        <div className="container-x py-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-white/60">
           <p className="sm:min-w-[200px]">© {year} SocioLoc. Tüm hakları saklıdır.</p>
           <div className="rounded-xl bg-white px-3 py-2 shadow-[0_8px_24px_-12px_rgba(0,0,0,0.45)]">
             <Image
@@ -169,7 +169,7 @@ export function Footer() {
           </div>
           <p className="sm:min-w-[200px] sm:text-right">
             Türkiye’de tasarlandı ve geliştirildi · v{" "}
-            <span className="text-white/60">1.0.6</span>
+            <span className="text-white/80">1.0.6</span>
           </p>
         </div>
       </div>

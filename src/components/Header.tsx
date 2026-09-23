@@ -81,7 +81,10 @@ export function Header() {
         </div>
 
         <button
-          aria-label="Menüyü aç/kapat"
+          type="button"
+          aria-label={open ? "Menüyü kapat" : "Menüyü aç"}
+          aria-expanded={open}
+          aria-controls="mobile-menu"
           onClick={() => setOpen((v) => !v)}
           className="md:hidden p-2 rounded-xl border border-white/10 bg-white/[0.04]"
         >
@@ -92,6 +95,7 @@ export function Header() {
       <AnimatePresence>
         {open && (
           <motion.div
+            id="mobile-menu"
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}

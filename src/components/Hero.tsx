@@ -125,7 +125,7 @@ export function Hero() {
             ref={phoneRef}
             onMouseMove={handleMouse}
             onMouseLeave={handleLeave}
-            className="relative tilt-3d w-[78%] xs:w-[68%] sm:w-[60%] lg:w-full max-w-[300px] sm:max-w-[340px] lg:max-w-[400px]"
+            className="relative tilt-3d w-[78%] min-[480px]:w-[68%] sm:w-[60%] lg:w-full max-w-[300px] sm:max-w-[340px] lg:max-w-[400px]"
           >
             <div className="absolute -inset-12 rounded-[40px] bg-gradient-to-tr from-brand-500/35 via-fuchsia-500/25 to-transparent blur-3xl" aria-hidden />
 

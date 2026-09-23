@@ -124,7 +124,7 @@ export function EventsExplorer({
                 setQuery(e.target.value);
                 setVisible(PAGE_SIZE);
               }}
-              className="h-11 w-full rounded-full border border-white/10 bg-white/[0.04] pl-10 pr-10 text-sm text-white placeholder:text-white/40 focus:border-brand-500/60 focus:outline-none focus:ring-2 focus:ring-brand-500/30"
+              className="h-11 w-full rounded-full border border-white/10 bg-white/[0.04] pl-10 pr-10 text-sm text-white placeholder:text-white/55 focus:border-brand-500/60 focus:outline-none focus:ring-2 focus:ring-brand-500/30"
             />
             {query ? (
               <button
