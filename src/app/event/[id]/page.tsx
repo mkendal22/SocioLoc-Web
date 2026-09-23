@@ -85,13 +85,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function EventDetailPage({ params }: Props) {
   const { id } = await params;
 
-  let ev: EventModel | null = null;
-  try {
-    ev = await fetchEventById(id);
-  } catch (e) {
-    console.error("[event] fetch error", e);
-  }
-
+  // Okuma hatası üretimde fırlatılır (fetch.ts → STRICT): geçici bir Firestore
+  // sorunu yayındaki etkinliği 404 olarak önbelleğe sokmaz.
+  const ev = await fetchEventById(id);
   if (!ev) {
     notFound();
   }

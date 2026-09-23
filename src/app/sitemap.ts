@@ -22,26 +22,23 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${SITE.url}/ticari-elektronik-ileti`, lastModified: now, changeFrequency: "yearly", priority: 0.3 },
   ];
 
-  let events: MetadataRoute.Sitemap = [];
-  try {
-    const all = await fetchAllEvents(300);
-    events = all
-      .filter((e) => {
-        const start = parseEventStart(e);
-        return (
-          start !== null &&
-          now.getTime() - start.getTime() <= RECENT_DAYS * 86_400_000
-        );
-      })
-      .map((e) => ({
-        url: `${SITE.url}/event/${e.docId}`,
-        lastModified: e.updatedAt ?? e.createdAt ?? undefined,
-        changeFrequency: "daily" as const,
-        priority: 0.6,
-      }));
-  } catch (e) {
-    console.error("[sitemap] etkinlikler alınamadı", e);
-  }
+  // Okuma hatası üretimde fırlatılır (fetch.ts → STRICT): önceki sitemap
+  // sunulmaya devam eder, etkinliksiz sürüm önbelleğe girmez.
+  const all = await fetchAllEvents(300);
+  const events: MetadataRoute.Sitemap = all
+    .filter((e) => {
+      const start = parseEventStart(e);
+      return (
+        start !== null &&
+        now.getTime() - start.getTime() <= RECENT_DAYS * 86_400_000
+      );
+    })
+    .map((e) => ({
+      url: `${SITE.url}/event/${e.docId}`,
+      lastModified: e.updatedAt ?? e.createdAt ?? undefined,
+      changeFrequency: "daily" as const,
+      priority: 0.6,
+    }));
 
   return [...pages, ...events];
 }
