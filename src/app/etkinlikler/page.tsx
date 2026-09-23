@@ -6,6 +6,8 @@ import { EventsExplorer } from "@/components/events/EventsExplorer";
 import { fetchAllEvents } from "@/lib/events/fetch";
 import { applyFilters } from "@/lib/events/filter";
 import { rankEvents } from "@/lib/events/ranking";
+import { toPublicEvent } from "@/lib/events/public";
+import type { PublicEvent } from "@/lib/events/types";
 import { SITE } from "@/lib/config";
 
 /** Boş önbellek / build anı: her istekte Firestore'dan taze veri. */
@@ -38,12 +40,13 @@ export default async function EtkinliklerPage() {
   const showDevAdminHint =
     process.env.NODE_ENV === "development" && !serverAdminConfigured;
 
-  let events: import("@/lib/events/types").EventModel[] = [];
+  let events: PublicEvent[] = [];
   try {
     const all = await fetchAllEvents(500);
     // Default filtreler: süresi geçmiş 3 günden eski gizli, eventType filtresi yok
     const filtered = applyFilters(all, { selectedDateFilter: "Tümü" });
-    events = rankEvents(filtered);
+    // Tarayıcıya yalnızca herkese açık alanlar gider (UID, konum, link yok).
+    events = rankEvents(filtered).map(toPublicEvent);
     if (process.env.NODE_ENV === "development") {
       console.info(
         `[etkinlikler] Firestore: ham=${all.length}, filtre sonrası=${filtered.length}, sıralı=${events.length}`,

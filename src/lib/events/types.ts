@@ -36,6 +36,30 @@ export interface EventModel {
   verifiedOnly: boolean;
 }
 
+/**
+ * Tarayıcıya gönderilen etkinlik: yalnızca kartın ve aramanın kullandığı
+ * alanlar. Katılımcı UID'leri, organizatör kimliği, koordinat, online link,
+ * kurallar vb. sunucuda kalır (bkz. `toPublicEvent`).
+ */
+export interface PublicEvent {
+  id: string;
+  title: string;
+  /** Arama için; etkinlik sayfasında zaten herkese açık. */
+  description: string;
+  date: string;
+  time: string;
+  /** Kısa konum ("Kadıköy, İstanbul" → "Kadıköy"); dijitalde boş. */
+  place: string;
+  category: string | null;
+  eventType: string;
+  image: string | null;
+  platformName: string | null;
+  participantCount: number;
+  participantLimit: number;
+  creatorNickname: string;
+  creatorPhoto: string;
+}
+
 function toDate(v: unknown): Date | null {
   if (!v) return null;
   if (typeof v === "object" && v !== null && "toDate" in v) {

@@ -1,3 +1,4 @@
+import "server-only";
 import { readFileSync, existsSync } from "node:fs";
 import path from "node:path";
 import {

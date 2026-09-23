@@ -4,8 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Search, SlidersHorizontal, X } from "lucide-react";
 import { EventCard } from "@/components/events/EventCard";
 import { applyFilters, type DateFilter } from "@/lib/events/filter";
-import { rankEvents } from "@/lib/events/ranking";
-import type { EventModel } from "@/lib/events/types";
+import type { PublicEvent } from "@/lib/events/types";
 
 /**
  * Mobilde sayfa aşağı kaydırılırken filtre/arama barı yukarı gizlensin,
@@ -72,7 +71,8 @@ export function EventsExplorer({
   initialEvents,
   showDevAdminHint = false,
 }: {
-  initialEvents: EventModel[];
+  /** Sunucuda sıralanmış, herkese açık alanlara indirgenmiş liste. */
+  initialEvents: PublicEvent[];
   /** Yerel: servis hesabı yoksa boş liste + kurulum ipucu */
   showDevAdminHint?: boolean;
 }) {
@@ -83,14 +83,16 @@ export function EventsExplorer({
   );
   const [visible, setVisible] = useState(PAGE_SIZE);
 
-  const filtered = useMemo(() => {
-    const list = applyFilters(initialEvents, {
-      searchQuery: query,
-      selectedDateFilter: dateFilter,
-      eventType: typeFilter === "all" ? null : typeFilter,
-    });
-    return rankEvents(list);
-  }, [initialEvents, query, dateFilter, typeFilter]);
+  // Sıralama sunucuda yapıldı; filtre sırayı korur.
+  const filtered = useMemo(
+    () =>
+      applyFilters(initialEvents, {
+        searchQuery: query,
+        selectedDateFilter: dateFilter,
+        eventType: typeFilter === "all" ? null : typeFilter,
+      }),
+    [initialEvents, query, dateFilter, typeFilter],
+  );
 
   const hasFilters =
     query.trim().length > 0 || dateFilter !== "Tümü" || typeFilter !== "all";
@@ -216,7 +218,7 @@ export function EventsExplorer({
         <>
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {visibleEvents.map((e) => (
-              <EventCard key={e.docId} data={e} />
+              <EventCard key={e.id} data={e} />
             ))}
           </div>
 
