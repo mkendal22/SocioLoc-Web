@@ -15,23 +15,12 @@ import { eventFromMap, type EventModel } from "./types";
 
 const COLL = "events";
 
-function sortByCreatedAtDesc(events: EventModel[]): EventModel[] {
-  return [...events].sort((a, b) => {
-    const ta = a.createdAt?.getTime() ?? 0;
-    const tb = b.createdAt?.getTime() ?? 0;
-    return tb - ta;
-  });
-}
-
 async function fetchAllEventsClient(max: number): Promise<EventModel[]> {
   const db = getDb();
   const snap = await getDocs(
     query(collection(db, COLL), orderBy("createdAt", "desc"), limit(max)),
   );
-  const list = snap.docs.map((d) =>
-    eventFromMap(d.data() as DocumentData, d.id),
-  );
-  return sortByCreatedAtDesc(list);
+  return snap.docs.map((d) => eventFromMap(d.data() as DocumentData, d.id));
 }
 
 /**
@@ -58,7 +47,7 @@ export async function fetchAllEvents(max = 300): Promise<EventModel[]> {
       if (process.env.NODE_ENV === "development") {
         console.info(`[fetchAllEvents] Admin OK, ham doküman: ${list.length}`);
       }
-      return sortByCreatedAtDesc(list);
+      return list;
     } catch (e) {
       console.error("[fetchAllEvents] Admin SDK hatası, istemci deneniyor:", e);
     }
