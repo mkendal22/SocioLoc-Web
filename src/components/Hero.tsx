@@ -53,28 +53,20 @@ export function Hero() {
             Türkiye’nin sosyal etkinlik ağı
           </motion.span>
 
-          <motion.h1
-            initial={{ opacity: 0, y: 14 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.05 }}
-            className="mt-5 text-[2.5rem] sm:text-6xl lg:text-7xl font-semibold tracking-tight leading-[1] text-balance"
-          >
+          {/* Başlık, paragraf ve telefon LCP adayı: sunucu HTML'inde görünür
+              gelir (JS'e bağlı giriş animasyonu yok). */}
+          <h1 className="mt-5 text-[2.5rem] sm:text-6xl lg:text-7xl font-semibold tracking-tight leading-[1] text-balance">
             <span className="gradient-text-shimmer">Yakınındaki</span>
             <br />
             etkinlikleri keşfet,
             <br />
             <span className="gradient-text">tanış.</span>
-          </motion.h1>
+          </h1>
 
-          <motion.p
-            initial={{ opacity: 0, y: 14 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.12 }}
-            className="mt-5 text-base sm:text-lg text-white/65 max-w-xl leading-relaxed"
-          >
+          <p className="mt-5 text-base sm:text-lg text-white/65 max-w-xl leading-relaxed">
             SocioLoc; haritadaki etkinlikleri görür, ilgi alanına göre filtreler,
             anlık sohbet ve grupla katıldığın insanlarla gerçek hayatta tanışırsın.
-          </motion.p>
+          </p>
 
           <motion.div
             initial={{ opacity: 0, y: 14 }}
@@ -128,12 +120,7 @@ export function Hero() {
         </div>
 
         {/* Phone with parallax tilt */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.9, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
-          className="lg:col-span-5 relative flex justify-center lg:justify-end"
-        >
+        <div className="lg:col-span-5 relative flex justify-center lg:justify-end">
           <div
             ref={phoneRef}
             onMouseMove={handleMouse}
@@ -168,7 +155,7 @@ export function Hero() {
             </motion.div>
 
           </div>
-        </motion.div>
+        </div>
       </div>
     </section>
   );
