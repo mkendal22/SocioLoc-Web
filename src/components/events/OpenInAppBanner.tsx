@@ -51,11 +51,15 @@ export function OpenInAppBanner({ eventId }: { eventId: string }) {
 
     // Android: `intent://` ile pakete özel deep link. Yüklü değilse
     // S.browser_fallback_url devreye girer, store'a yönlendirir.
+    // scheme=socioloc → `socioloc://event/<id>`: uygulamanın manifest'inde
+    // web fallback'i için tanımlı custom scheme (iOS ile aynı biçim).
+    // (Eskiden scheme=https ile `https://event/<id>` üretiliyordu; host
+    // "event" olduğundan uygulamanın filtresiyle eşleşmiyordu.)
     if (platform === "android") {
       const fallback = encodeURIComponent(SITE.googlePlayUrl);
       const intent =
-        `intent://event/${eventId}` +
-        `#Intent;scheme=https;package=${SITE.androidPackage};` +
+        `intent://event/${encodeURIComponent(eventId)}` +
+        `#Intent;scheme=socioloc;package=${SITE.androidPackage};` +
         `S.browser_fallback_url=${fallback};end`;
       window.location.href = intent;
       return;
