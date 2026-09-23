@@ -50,6 +50,9 @@ describe("parseWallDate", () => {
     ["2026-09-23T00:00:00.000", sep23],
     ["2026-09-22T21:30:00.000Z", sep23],
     ["2026-09-23T02:00:00+03:00", sep23],
+    // Eski new Date() yedeğinin okuduğu biçimler
+    ["2026/09/23", sep23],
+    ["2026-9-23", sep23],
   ])("%s", (raw, expected) => {
     expect(parseWallDate(raw)).toEqual(expected);
   });
@@ -63,6 +66,7 @@ describe("parseClock", () => {
   it("HH:mm okur, geçersizi reddeder", () => {
     expect(parseClock("20:05")).toEqual({ hour: 20, minute: 5 });
     expect(parseClock("9:30")).toEqual({ hour: 9, minute: 30 });
+    expect(parseClock("20:5")).toEqual({ hour: 20, minute: 5 });
     expect(parseClock("24:00")).toBeNull();
     expect(parseClock("")).toBeNull();
   });

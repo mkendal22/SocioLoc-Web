@@ -122,12 +122,21 @@ export function parseWallDate(raw: string): WallDate | null {
   m = s.match(/^(\d{4})-(\d{2})-(\d{2})T/);
   if (m) return validWallDate({ year: +m[1], month: +m[2], day: +m[3] });
 
-  return null;
+  // Diğer biçimler ("2026/09/23", "2026-9-23"…): eski kod new Date() ile
+  // okuyordu; uyum için aynı yedek. Saat dilimi yazılmamış metinleri JS yerel
+  // saat kabul eder, yani yazılan gün = yerel takvim bileşenleri.
+  const d = new Date(s);
+  if (Number.isNaN(d.getTime())) return null;
+  return validWallDate({
+    year: d.getFullYear(),
+    month: d.getMonth() + 1,
+    day: d.getDate(),
+  });
 }
 
 /** "HH:mm" → saat/dakika. */
 export function parseClock(raw: string): { hour: number; minute: number } | null {
-  const m = raw.trim().match(/^(\d{1,2}):(\d{2})/);
+  const m = raw.trim().match(/^(\d{1,2}):(\d{1,2})/);
   if (!m) return null;
   const hour = +m[1];
   const minute = +m[2];
