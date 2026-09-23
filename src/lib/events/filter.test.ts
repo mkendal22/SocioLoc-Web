@@ -73,14 +73,23 @@ describe("applyFilters — arama ve tür", () => {
   const list = [
     ev("25.09.2026", "20:00", { title: "İstanbul Konseri" }),
     ev("25.09.2026", "21:00", { title: "Yoga", eventType: "Dijital" }),
+    ev("25.09.2026", "22:00", { title: "Indie Gecesi" }),
+    ev("25.09.2026", "23:00", { title: "Kadıköy Işıklı Yürüyüş" }),
   ];
+  const q = (searchQuery: string) =>
+    applyFilters(list, { searchQuery, now: NOW }).map((e) => e.title);
 
   it("Türkçe büyük/küçük harf (İ/ı) doğru eşleşir", () => {
-    const q = (searchQuery: string) =>
-      applyFilters(list, { searchQuery, now: NOW }).map((e) => e.title);
     expect(q("istanbul")).toEqual(["İstanbul Konseri"]);
     expect(q("İSTANBUL")).toEqual(["İstanbul Konseri"]);
     expect(q("KONSER")).toEqual(["İstanbul Konseri"]);
+    expect(q("ışıklı")).toEqual(["Kadıköy Işıklı Yürüyüş"]);
+    expect(q("IŞIKLI")).toEqual(["Kadıköy Işıklı Yürüyüş"]);
+  });
+
+  it("büyük I ile yazılmış İngilizce kelimeler de bulunur", () => {
+    expect(q("indie")).toEqual(["Indie Gecesi"]);
+    expect(q("INDIE")).toEqual(["Indie Gecesi"]);
   });
 
   it("etkinlik türüne göre süzer", () => {

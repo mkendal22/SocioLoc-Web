@@ -38,6 +38,15 @@ export interface EventFilterParams {
   now?: Date;
 }
 
+/**
+ * Arama anahtarı: Türkçe küçük harf + "ı" → "i". Böylece "İstanbul"/"istanbul"
+ * ve İngilizce "Indie"/"indie" aynı anahtara iner (tr-TR tek başına "I"yı
+ * "ı" yapar ve "indie" araması "Indie"yi bulamazdı).
+ */
+function searchKey(s: string): string {
+  return s.toLocaleLowerCase("tr-TR").replace(/ı/g, "i");
+}
+
 /** Mobilden 1-1 port edilmiş filtre. Takvim hesapları Türkiye saatine göre. */
 export function applyFilters<T extends FilterableEvent>(
   events: T[],
@@ -54,7 +63,7 @@ export function applyFilters<T extends FilterableEvent>(
     now = new Date(),
   } = params;
 
-  const search = searchQuery.trim().toLocaleLowerCase("tr-TR");
+  const search = searchKey(searchQuery.trim());
 
   const filtered = events.filter((data) => {
     // Süresi geçmiş etkinlikleri grace gün sonra gizle (tarih DD.MM.YYYY / ISO)
@@ -65,8 +74,8 @@ export function applyFilters<T extends FilterableEvent>(
     }
 
     if (search) {
-      const title = (data.title || "").toLocaleLowerCase("tr-TR");
-      const desc = (data.description || "").toLocaleLowerCase("tr-TR");
+      const title = searchKey(data.title || "");
+      const desc = searchKey(data.description || "");
       if (!title.includes(search) && !desc.includes(search)) return false;
     }
 
