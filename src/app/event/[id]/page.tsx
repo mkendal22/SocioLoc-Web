@@ -295,7 +295,11 @@ export default async function EventDetailPage({ params }: Props) {
       <Footer />
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(ldJson) }}
+        // Başlık/açıklama kullanıcı içeriği: "</script>" ile etiketten
+        // kaçıp kod çalıştırmasın diye "<" karakteri kaçırılır.
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(ldJson).replace(/</g, "\\u003c"),
+        }}
       />
     </>
   );
