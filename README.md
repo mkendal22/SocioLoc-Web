@@ -24,7 +24,7 @@ npm start            # production start
 `.env.local` (opsiyonel):
 
 ```
-NEXT_PUBLIC_SITE_URL=https://socioloc.app
+NEXT_PUBLIC_SITE_URL=https://www.socioloc.app
 ```
 
 `metadataBase`, `robots.ts`, `sitemap.ts` ve JSON-LD bu değeri kullanır.

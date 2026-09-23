@@ -1,7 +1,15 @@
+/**
+ * Birincil (canonical) adres. socioloc.app → www.socioloc.app yönlendirilir;
+ * canonical, sitemap, OG ve paylaşım linkleri hep bu adresi kullanır.
+ */
+const SITE_URL = (
+  process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.socioloc.app"
+).replace(/\/+$/, "");
+
 export const SITE = {
   name: "SocioLoc",
   domain: "socioloc.app",
-  url: "https://socioloc.app",
+  url: SITE_URL,
   email: "info@socioloc.app",
   legalEmail: "yonetim@socioloc.app",
   phone: "+90 545 963 88 08",
