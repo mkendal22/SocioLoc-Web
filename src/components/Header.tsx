@@ -8,9 +8,11 @@ import { AnimatePresence, motion } from "framer-motion";
 import { SITE } from "@/lib/config";
 
 const NAV = [
+  { href: "/etkinlikler", label: "Etkinlikler" },
   { href: "/#features", label: "Özellikler" },
   { href: "/#how", label: "Nasıl çalışır" },
   { href: "/#showcase", label: "Uygulama" },
+  { href: "/#business", label: "İşletmeler" },
   { href: "/#faq", label: "SSS" },
 ];
 
@@ -56,12 +58,12 @@ export function Header() {
           <span className="text-lg">SocioLoc</span>
         </Link>
 
-        <nav className="hidden md:flex items-center gap-1 text-sm text-white/75">
+        <nav className="hidden md:flex items-center gap-0.5 text-sm text-white/75">
           {NAV.map((n) => (
             <a
               key={n.href}
               href={n.href}
-              className="relative px-3.5 py-2 rounded-full hover:text-white transition-colors group"
+              className="relative px-2.5 lg:px-3.5 py-2 rounded-full hover:text-white transition-colors group"
             >
               <span className="relative z-10">{n.label}</span>
               <span

@@ -49,6 +49,11 @@ export function Footer() {
           </h4>
           <ul className="mt-4 space-y-2.5 text-sm text-white/75">
             <li>
+              <Link className="hover:text-white transition-colors" href="/etkinlikler">
+                Etkinlikler
+              </Link>
+            </li>
+            <li>
               <a className="hover:text-white transition-colors" href="/#features">
                 Özellikler
               </a>
@@ -61,6 +66,11 @@ export function Footer() {
             <li>
               <a className="hover:text-white transition-colors" href="/#showcase">
                 Uygulama
+              </a>
+            </li>
+            <li>
+              <a className="hover:text-white transition-colors" href="/#business">
+                İşletmeler
               </a>
             </li>
             <li>
@@ -91,7 +101,23 @@ export function Footer() {
             </li>
             <li>
               <Link className="hover:text-white transition-colors" href="/kvkk">
-                KVKK / Açık rıza
+                KVKK Aydınlatma Metni
+              </Link>
+            </li>
+            <li>
+              <Link
+                className="hover:text-white transition-colors"
+                href="/teslimat-ve-iade"
+              >
+                Teslimat, iptal ve iade
+              </Link>
+            </li>
+            <li>
+              <Link
+                className="hover:text-white transition-colors"
+                href="/mesafeli-satis"
+              >
+                Mesafeli satış sözleşmesi
               </Link>
             </li>
             <li>
@@ -129,9 +155,18 @@ export function Footer() {
       </div>
 
       <div className="border-t border-white/[0.05]">
-        <div className="container-x py-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-white/45">
-          <p>© {year} SocioLoc. Tüm hakları saklıdır.</p>
-          <p>
+        <div className="container-x py-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-white/45">
+          <p className="sm:min-w-[200px]">© {year} SocioLoc. Tüm hakları saklıdır.</p>
+          <div className="rounded-xl bg-white px-3 py-2 shadow-[0_8px_24px_-12px_rgba(0,0,0,0.45)]">
+            <img
+              src="/payments/logo_band_colored.svg"
+              alt="iyzico ile Öde — Mastercard, Visa, American Express, Troy"
+              width={429}
+              height={32}
+              className="h-7 w-auto max-w-[min(100%,280px)] sm:max-w-[320px]"
+            />
+          </div>
+          <p className="sm:min-w-[200px] sm:text-right">
             Türkiye'de tasarlandı ve geliştirildi · v{" "}
             <span className="text-white/60">1.0.6</span>
           </p>

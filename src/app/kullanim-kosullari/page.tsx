@@ -1,7 +1,7 @@
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { LegalLayout } from "@/components/LegalLayout";
-import { TERMS } from "@/lib/legal-texts";
+import { LAST_UPDATED_LEGACY, TERMS } from "@/lib/legal-texts";
 
 export const metadata = {
   title: "Kullanım Koşulları",
@@ -19,6 +19,7 @@ export default function Page() {
         intro="SocioLoc uygulamasını veya web sitesini kullanmadan önce lütfen aşağıdaki kullanım koşullarını okuyunuz. Hizmetimizden yararlanmanız bu koşulları kabul ettiğiniz anlamına gelir."
         body={TERMS}
         current="/kullanim-kosullari"
+        updated={LAST_UPDATED_LEGACY}
       />
       <Footer />
     </>

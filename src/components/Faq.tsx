@@ -3,31 +3,55 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";
 import { Plus } from "lucide-react";
+import Link from "next/link";
+import { SITE } from "@/lib/config";
 
-const QA = [
+type FaqItem = {
+  q: string;
+  a: string;
+  links?: { href: string; label: string }[];
+};
+
+const QA: FaqItem[] = [
   {
     q: "SocioLoc ücretsiz mi?",
-    a: "Evet, indirme ve temel tüm özellikler ücretsizdir. İleride opsiyonel premium etkinlik biletleme gibi ek hizmetler eklenebilir.",
+    a: "İndirmek ve temel kullanım ücretsizdir: keşif, etkinlik oluşturma, katılma ve sohbet için ücret alınmaz. Ücretli etkinlik bileti varsa tutar uygulamada gösterilir; kartlı ödeme iyzico üzerinden alınır. İşletmeler etkinliği belirli süre öne çıkarabilir; bu ayrı bir satın almadır.",
   },
   {
-    q: "Hangi şehirlerde aktif?",
-    a: "Türkiye genelinde tüm şehirlerde kullanılabilir; etkinlik yoğunluğu büyük şehirlerde (İstanbul, Ankara, İzmir, Bursa, Antalya) daha yüksektir.",
+    q: "İşletme hesabı nasıl açılır?",
+    a: "Uygulamada işletme türünü seçersin: mekân, kulüp, dernek, şirket veya kişisel/creator. Başvuru incelenir; onay gelene kadar hesabın kişisel olarak çalışmaya devam eder. Onaydan sonra Yönetim Merkezi açılır: etkinlik, bilet, QR giriş, ekip, istatistik ve satış.",
   },
   {
-    q: "Verilerim güvende mi?",
-    a: "Verileriniz Firebase güvenlik kurallarıyla korunur, KVKK uyumludur ve iletişim trafiği uçtan uca şifrelenir. Detaylar için gizlilik politikamıza bakabilirsiniz.",
+    q: "Bilet aldım, iptal edebilir miyim?",
+    a: "SocioLoc’un T-24 kuralı: etkinliğin ilan edilen başlangıç saatinden 24 saat öncesine kadar bileti iptal edebilirsin. 24 saatten az kala yapılan alışta standart gönüllü iptal yoktur. Etkinlik iptal edilir veya yeri/tarihi esaslı değişirse T-24 uygulanmaz; iade SocioLoc tarafından yürütülür, organizatöre ayrıca yazman gerekmez.",
+    links: [
+      { href: "/teslimat-ve-iade", label: "Teslimat, iptal ve iade" },
+      { href: "/mesafeli-satis", label: "Mesafeli satış sözleşmesi" },
+    ],
   },
   {
-    q: "Etkinlik oluşturmak için ek bir koşul var mı?",
-    a: "Hayır, hesap oluşturduktan sonra herkes etkinlik açabilir. Topluluk kurallarına aykırı içerikler moderasyona tabidir; sahte/zararlı etkinlikler hızla kaldırılır.",
+    q: "Verilerim nasıl korunuyor?",
+    a: "Veri sorumlusu Socioloc Teknoloji A.Ş.’dir. Hesap, konum, sohbet, bilet ve teknik kayıtlar KVKK kapsamında, amaca göre işlenir. Kart bilgisi iyzico altyapısında yürür. Organizatöre yalnızca etkinliğin yapılması için gereken sınırlı katılımcı bilgisi gider. Hakların ve başvuru yolu KVKK Aydınlatma Metni’ndedir.",
+    links: [
+      { href: "/gizlilik", label: "Gizlilik politikası" },
+      { href: "/kvkk", label: "KVKK aydınlatma metni" },
+    ],
   },
   {
-    q: "Anonim sohbet mümkün mü?",
-    a: "Evet, bazı etkinliklerde takma ad ile sohbet edebilirsiniz; kimliğiniz açıkça paylaşılmaz. Kimlik doğrulaması ise yine arka planda yapılır.",
+    q: "Herkes etkinlik açabilir mi?",
+    a: "Evet. Kişisel hesapla da etkinlik oluşturup davet linki paylaşabilirsin. İşletme hesabı ekstra olarak ücretli bilet, QR giriş, ekip rolleri ve satış dökümü verir. Topluluk kurallarına aykırı içerik kaldırılır; şikâyet ve engelleme uygulamada vardır.",
+  },
+  {
+    q: "Kimlik doğrulama ne işe yarıyor?",
+    a: "Uygulamada kimlik/selfie doğrulama, sahte hesapları azaltmak içindir. Zorunluluk etkinliğe göre değişebilir; organizatör yaş veya kimlik şartı koyduysa bu, ödeme öncesi etkinlik sayfasında yazmalıdır. Şartı karşılamadan kapıdan dönememek tek başına iade hakkı doğurmaz.",
+  },
+  {
+    q: "Hangi şehirlerde kullanılabilir?",
+    a: "Türkiye genelinde açılır. Etkinlik yoğunluğu büyük şehirlerde daha yüksektir; senin şehrinde ne kadar içerik olduğu, o anda oluşturulan etkinliklere bağlıdır.",
   },
   {
     q: "Bildirimleri kapatabilir miyim?",
-    a: "Evet, ayarlardan tüm bildirimleri tek bir anahtarla kapatabilirsiniz veya kategori bazlı (sohbet, davet, sistem) yönetebilirsiniz.",
+    a: "Evet. Ayarlardan tüm bildirimleri kapatabilir veya sohbet, davet ve sistem bildirimlerini ayrı yönetebilirsin. İşletme takip ediyorsan gönderi/etkinlik bildirimlerini de hesap bazında ayarlayabilirsin.",
   },
 ];
 
@@ -53,7 +77,7 @@ export function Faq() {
             transition={{ duration: 0.6, delay: 0.05 }}
             className="mt-3 text-4xl sm:text-5xl font-semibold tracking-tight text-balance"
           >
-            Sık sorulan sorular.
+            Merak edilenler, net cevaplar.
           </motion.h2>
           <motion.p
             initial={{ opacity: 0 }}
@@ -62,7 +86,13 @@ export function Faq() {
             transition={{ duration: 0.6, delay: 0.15 }}
             className="mt-4 text-white/65"
           >
-            Aradığını bulamadın mı? <a href="mailto:hi@socioloc.app" className="underline underline-offset-4 hover:text-white">Bize yaz</a>.
+            Bilet, işletme veya hesap için yaz:{" "}
+            <a
+              href={`mailto:${SITE.email}`}
+              className="underline underline-offset-4 hover:text-white"
+            >
+              {SITE.email}
+            </a>
           </motion.p>
         </div>
 
@@ -113,7 +143,20 @@ export function Faq() {
                       className="overflow-hidden"
                     >
                       <div className="px-6 pb-6 text-white/65 leading-relaxed">
-                        {it.a}
+                        <p>{it.a}</p>
+                        {it.links && (
+                          <div className="mt-4 flex flex-wrap gap-2">
+                            {it.links.map((link) => (
+                              <Link
+                                key={link.href}
+                                href={link.href}
+                                className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs text-white/80 hover:text-white hover:border-white/25 transition-colors"
+                              >
+                                {link.label}
+                              </Link>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     </motion.div>
                   )}

@@ -6,7 +6,7 @@ import { PRIVACY } from "@/lib/legal-texts";
 export const metadata = {
   title: "Gizlilik Politikası",
   description:
-    "SocioLoc gizlilik politikası: hangi verileri topluyoruz, nasıl kullanıyoruz, KVKK kapsamındaki haklarınız ve başvuru yolları.",
+    "SocioLoc gizlilik politikası: işlenen veriler, iyzico ödemeleri, organizatör paylaşımı, konum izinleri ve KVKK haklarınız.",
   alternates: { canonical: "/gizlilik" },
 };
 
@@ -16,7 +16,7 @@ export default function Page() {
       <Header />
       <LegalLayout
         title="Gizlilik Politikası"
-        intro="SocioLoc olarak kişisel verilerinizin güvenliği bizim için önemlidir. Aşağıda hangi verileri neden topladığımızı ve KVKK kapsamındaki haklarınızı bulabilirsiniz."
+        intro="Bu politika, www.socioloc.app ve SocioLoc mobil uygulamasındaki genel gizlilik uygulamalarını açıklar. 6698 sayılı Kanun kapsamındaki aydınlatma, ayrıca yayımlanan KVKK Aydınlatma Metni ile yapılır."
         body={PRIVACY}
         current="/gizlilik"
       />

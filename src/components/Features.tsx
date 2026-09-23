@@ -162,7 +162,7 @@ export function Features() {
           className="mt-10 flex items-center gap-2 text-sm text-white/55"
         >
           <Sparkles className="size-4 text-brand-300" />
-          ve yakında: sesli mesaj, canlı yayın etkinlikleri, premium etkinlik biletleme.
+          Ücretli bilet, QR giriş ve işletme paneli uygulamada.
         </motion.div>
       </div>
     </section>

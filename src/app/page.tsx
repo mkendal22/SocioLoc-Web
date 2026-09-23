@@ -4,6 +4,7 @@ import { Marquee } from "@/components/Marquee";
 import { Features } from "@/components/Features";
 import { HowItWorks } from "@/components/HowItWorks";
 import { Showcase } from "@/components/Showcase";
+import { Business } from "@/components/Business";
 import { Faq } from "@/components/Faq";
 import { CtaBanner } from "@/components/CtaBanner";
 import { Footer } from "@/components/Footer";
@@ -20,6 +21,7 @@ export default function Page() {
         <Features />
         <Showcase />
         <HowItWorks />
+        <Business />
         <Faq />
         <CtaBanner />
       </main>

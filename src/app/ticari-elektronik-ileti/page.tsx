@@ -1,7 +1,7 @@
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { LegalLayout } from "@/components/LegalLayout";
-import { COMMERCIAL } from "@/lib/legal-texts";
+import { COMMERCIAL, LAST_UPDATED_LEGACY } from "@/lib/legal-texts";
 
 export const metadata = {
   title: "Ticari Elektronik İleti Aydınlatma Metni",
@@ -19,6 +19,7 @@ export default function Page() {
         intro="SMS, e-posta ve arama yoluyla göndereceğimiz ticari elektronik iletilere ilişkin aydınlatma metni ve onay/ret haklarınız."
         body={COMMERCIAL}
         current="/ticari-elektronik-ileti"
+        updated={LAST_UPDATED_LEGACY}
       />
       <Footer />
     </>

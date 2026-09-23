@@ -1,0 +1,16 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appIDs": ["XDKZ22YVKR.com.socioloc.app"],
+        "components": [
+          { "/": "/event/*", "comment": "Etkinlik deep link" }
+        ]
+      }
+    ]
+  },
+  "webcredentials": {
+    "apps": ["XDKZ22YVKR.com.socioloc.app"]
+  }
+}

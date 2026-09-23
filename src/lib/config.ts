@@ -3,8 +3,21 @@ export const SITE = {
   domain: "socioloc.app",
   url: "https://socioloc.app",
   email: "info@socioloc.app",
+  legalEmail: "yonetim@socioloc.app",
+  phone: "+90 545 963 88 08",
+  company: {
+    name: "Socioloc Teknoloji Anonim Şirketi",
+    tradeRegistry: "48994",
+    mersis: "0772176093000001",
+    taxOffice: "İLYASBEY",
+    taxNo: "7721760930",
+    address:
+      "GEBZE OSB MAH. KEMAL NEHROZOGLU CAD. NO:507/8 İÇ KAPI NO: Z01 GEBZE/KOCAELİ",
+  },
   // Mobil mağazalar (uygulama yayında — gerçek linkler)
   appStoreUrl: "https://apps.apple.com/tr/app/socioloc/id6744417472",
+  appStoreId: "6744417472",
+  androidPackage: "com.socioloc.app",
   googlePlayUrl: "https://play.google.com/store/apps/details?id=com.socioloc.app",
   // Sosyal medya
   social: {

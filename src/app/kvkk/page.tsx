@@ -4,9 +4,9 @@ import { LegalLayout } from "@/components/LegalLayout";
 import { KVKK } from "@/lib/legal-texts";
 
 export const metadata = {
-  title: "KVKK / Açık Rıza Metni",
+  title: "KVKK Aydınlatma Metni",
   description:
-    "6698 sayılı Kişisel Verilerin Korunması Kanunu kapsamında SocioLoc açık rıza metni ve haklarınız.",
+    "6698 sayılı Kişisel Verilerin Korunması Kanunu kapsamında SocioLoc aydınlatma metni: veri sorumlusu, işleme amaçları, iyzico, haklar ve başvuru usulü.",
   alternates: { canonical: "/kvkk" },
 };
 
@@ -15,8 +15,8 @@ export default function Page() {
     <>
       <Header />
       <LegalLayout
-        title="KVKK / Açık Rıza Metni"
-        intro="6698 sayılı Kişisel Verilerin Korunması Kanunu kapsamında, SocioLoc tarafından kişisel verilerinizin işlenmesine ilişkin açık rıza metni."
+        title="KVKK Aydınlatma Metni"
+        intro="Bu metin bir açık rıza metni değildir. Açık rızaya dayalı bir işlem varsa rıza talebi bu aydınlatmadan ayrı sunulur."
         body={KVKK}
         current="/kvkk"
       />

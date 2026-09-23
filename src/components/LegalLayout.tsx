@@ -8,16 +8,19 @@ type Props = {
   intro?: string;
   body: string;
   current: string;
+  updated?: string;
 };
 
 const LINKS = [
   { href: "/gizlilik", label: "Gizlilik Politikası" },
   { href: "/kullanim-kosullari", label: "Kullanım Koşulları" },
-  { href: "/kvkk", label: "KVKK / Açık Rıza" },
+  { href: "/kvkk", label: "KVKK Aydınlatma Metni" },
+  { href: "/teslimat-ve-iade", label: "Teslimat, İptal ve İade" },
+  { href: "/mesafeli-satis", label: "Mesafeli Satış Sözleşmesi" },
   { href: "/ticari-elektronik-ileti", label: "Ticari Elektronik İleti" },
 ];
 
-export function LegalLayout({ title, intro, body, current }: Props) {
+export function LegalLayout({ title, intro, body, current, updated }: Props) {
   // Body'i parse et: paragraflar (boş satırla ayrılmış)
   const blocks = body
     .split(/\n\s*\n/)
@@ -89,7 +92,7 @@ export function LegalLayout({ title, intro, body, current }: Props) {
                 {title}
               </h1>
               <p className="mt-3 text-sm text-white/55">
-                Son güncelleme: {LAST_UPDATED}
+                Son güncelleme: {updated ?? LAST_UPDATED}
               </p>
               {intro && (
                 <p className="mt-6 text-white/70 text-balance leading-relaxed">
