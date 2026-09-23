@@ -1,0 +1,141 @@
+# Kod dışı ayarlar: kontrol listesi
+
+`fix/site-iyilestirmeleri` branch'indeki değişikliklerin tam etkisi için kod
+dışında yapılması gereken ayarlar. Her maddede kim, nerede ve nasıl
+doğrulanacağı yazıyor.
+
+> Canlı site bu repodan değil, başka bir repodan deploy ediliyor. Önce bu
+> branch'in o repoya taşınması gerekiyor (bkz. madde 8).
+
+## 1. Vercel: apex alan adını projeye bağla
+
+**Kim:** Vercel projesine erişimi olan kişi (Melik)
+
+Şu an `socioloc.app` → `www.socioloc.app` yönlendirmesini Vercel alan adı
+ayarı yapıyor: 307 (geçici) ve `/.well-known` dosyaları dahil her şeyi
+yönlendiriyor. Apple ve Google doğrulama dosyalarında yönlendirme izlemediği
+için `socioloc.app` üzerinden derin link doğrulaması başarısız oluyor.
+
+1. Vercel → Project → Settings → Domains → `socioloc.app`: "Redirect to
+   www.socioloc.app" yerine doğrudan Production'a bağla. `www.socioloc.app`
+   birincil alan adı olarak kalsın.
+2. Yönlendirmeyi artık `next.config.ts` yapıyor: 308 (kalıcı),
+   `/.well-known/*` hariç.
+3. Ortam değişkeni (Production + Preview):
+   `NEXT_PUBLIC_SITE_URL=https://www.socioloc.app`. Tanımlanmazsa varsayılan
+   da bu.
+
+**Doğrulama**
+
+```bash
+curl -sI https://socioloc.app/ | grep -iE "^HTTP|^location"
+# → 308, location: https://www.socioloc.app/
+curl -sI https://socioloc.app/.well-known/assetlinks.json | grep -i "^HTTP"
+# → 200
+```
+
+## 2. Play Console: SHA-256 parmak izini teyit et
+
+**Kim:** Mobil ekip (Play Console erişimi olan)
+
+`public/.well-known/assetlinks.json` dosyasına, Firebase'deki Android
+uygulamasına kayıtlı ve debug olmayan tek SHA-256 değeri yazıldı:
+
+```
+B7:83:E8:E8:8C:EC:B7:A1:8B:AF:13:AF:86:9B:1A:E9:B6:96:78:57:1C:68:F5:04:75:0D:E5:91:65:90:D9:58
+```
+
+Firebase'de kayıtlı diğer SHA-256 değeri (`AA:DA:29:D9:…:09:D2`) bir
+geliştirici bilgisayarındaki `debug.keystore`'a ait; assetlinks'e
+**eklenmemeli**.
+
+1. Play Console → SocioLoc → Uygulama bütünlüğü (App integrity) → Uygulama
+   imzalama → "Uygulama imzalama anahtarı sertifikası" altındaki SHA-256.
+2. Yukarıdaki değerle aynı değilse assetlinks.json'daki değeri onunla
+   değiştir. Aynı sayfadaki hazır "Digital Asset Links JSON" da
+   kullanılabilir. İstenirse yükleme anahtarının (upload key) SHA-256'sı da
+   listeye eklenebilir.
+
+**Doğrulama**
+
+- `https://digitalassetlinks.googleapis.com/v1/statements:list?source.web.site=https://www.socioloc.app&relation=delegate_permission/common.handle_all_urls`
+- Uygulama yüklü bir cihazda:
+  `adb shell pm get-app-links com.socioloc.app` → `www.socioloc.app: verified`
+
+## 3. iOS: Associated Domains
+
+**Kim:** Mobil ekip. **Değişiklik gerekmiyor.**
+
+`ios/Runner/RunnerRelease.entitlements` zaten `applinks:socioloc.app` ve
+`applinks:www.socioloc.app` içeriyor. www için doğrulama bugün de çalışıyor.
+Apex için 1. madde tamamlanınca çalışır.
+
+**Doğrulama:** `https://app-site-association.cdn-apple.com/a/v1/www.socioloc.app`
+(Apple CDN'in önbelleğe aldığı dosya; güncellenmesi 24–48 saat sürebilir).
+
+## 4. Vercel ortam değişkenleri: Firebase Admin
+
+**Kim:** Vercel projesine erişimi olan kişi
+
+Firestore kuralları anonim okumaya kapalı; yerel build sırasında istemci
+SDK'nın aldığı "Missing or insufficient permissions" hatasıyla doğrulandı.
+Bu yüzden etkinlik sayfaları ve sitemap yalnızca Admin SDK ile veri
+alabiliyor.
+
+- Production **ve build** ortamında `FIREBASE_SERVICE_ACCOUNT_BASE64`
+  tanımlı olmalı. `/etkinlikler` artık ISR ile build sırasında da
+  üretiliyor.
+- Bu doğrulandıktan sonra `src/lib/firebase.ts` üzerindeki istemci SDK yedeği
+  tamamen kaldırılabilir; kurallar nedeniyle zaten hiç çalışmıyor.
+
+## 5. Firebase web yapılandırması (düşük öncelik)
+
+**Kim:** Firebase projesine erişimi olan kişi
+
+Web istemcisi şu an Android uygulamasının `appId` değerini kullanıyor
+(`src/lib/firebase.ts`).
+
+1. Firebase Console → Project settings → Add app → Web; çıkan değerleri
+   Vercel'de `NEXT_PUBLIC_FIREBASE_*` değişkenlerine gir.
+2. Google Cloud Console → APIs & Services → Credentials → web API anahtarı
+   → Application restrictions: HTTP referrers (`https://www.socioloc.app/*`,
+   `https://socioloc.app/*`, preview alan adı).
+
+Tarayıcı Firebase'e bağlanmadığı için (tüm okumalar sunucuda) bu adım
+güvenlikten çok düzen için.
+
+## 6. Cloudflare (değerlendirin)
+
+**Kim:** DNS yöneticisi
+
+Yanıtlar Cloudflare proxy'sinden geçiyor, arkada Vercel var. Vercel önüne
+ters proxy konmasını önermiyor: önbellek, güvenlik duvarı ve sertifika
+yenileme davranışları çakışabilir. Özel bir sebep yoksa Cloudflare → DNS →
+`socioloc.app` ve `www` kayıtlarını "DNS only" (gri bulut) moduna alın.
+
+## 7. CSP'yi zorunlu moda alma
+
+**Kim:** Web ekibi, 1–2 hafta sonra
+
+CSP şu an yalnızca rapor modunda (`Content-Security-Policy-Report-Only`) ve
+hiçbir şeyi engellemiyor. Canlıda tarayıcı konsolunda `[Report Only]`
+ihlali görülmezse `next.config.ts`'te anahtar
+`Content-Security-Policy` yapılarak zorunlu hale getirilebilir.
+
+## 8. Canlı repoya taşıma
+
+**Kim:** Melik + Can
+
+Canlıdaki kod bu repodan farklı:
+
+- www canonical adresleri iki tarafta da var.
+- Canlıdaki sitemap tüm etkinlikleri listeliyor; bu branch yalnızca
+  yaklaşanları (son 3 gün dahil) listeliyor.
+
+Taşımadan önce iki repo karşılaştırılmalı. Bu branch'in commit'leri
+birbirinden bağımsız olduğu için tek tek cherry-pick edilebilir.
+
+## 9. Arama motorları (opsiyonel)
+
+Google Search Console'da `https://www.socioloc.app` mülkü doğrulanıp
+`/sitemap.xml` gönderilebilir.
