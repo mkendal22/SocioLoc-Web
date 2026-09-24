@@ -66,6 +66,13 @@ describe("renderLegalMarkdown", () => {
     expect(() => renderLegalMarkdown("deneme.md", doc(tag))).toThrow(/kapanmamış/);
   });
 
+  it("üst bilgideki yer tutucular da çözülür ve denetlenir", () => {
+    const raw = doc("Metin").replace("title: Deneme", "title: Deneme\nintro: {{web}} için");
+    expect(renderLegalMarkdown("deneme.md", raw).intro).toBe("www.socioloc.app için");
+    const bad = doc("Metin").replace("title: Deneme", "title: Deneme\nintro: {{kunye}");
+    expect(() => renderLegalMarkdown("deneme.md", bad)).toThrow(/kapanmamış/);
+  });
+
   it("title ya da updated eksikse hata verir", () => {
     expect(() => renderLegalMarkdown("deneme.md", "## Başlık")).toThrow(/title/);
   });

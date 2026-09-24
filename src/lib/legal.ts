@@ -89,25 +89,29 @@ export function renderLegalMarkdown(
   }
 
   const values = placeholders();
-  // Boşluklu ({{ kunye }}) ve Türkçe karakterli ({{künye}}) yazımlar da
-  // yakalanır; bilinmeyen anahtar build'i durdurur.
-  const source = body.replace(/\{\{\s*([^{}]*?)\s*\}\}/g, (_, key: string) => {
-    if (!Object.hasOwn(values, key)) {
-      throw new Error(`${name}: bilinmeyen yer tutucu {{${key}}}`);
+  // Gövde ve üst bilgi (title, intro, description…) aynı kurallardan geçer.
+  const fill = (input: string) => {
+    // Boşluklu ({{ kunye }}) ve Türkçe karakterli ({{künye}}) yazımlar da
+    // yakalanır; bilinmeyen anahtar build'i durdurur.
+    const output = input.replace(/\{\{\s*([^{}]*?)\s*\}\}/g, (_, key: string) => {
+      if (!Object.hasOwn(values, key)) {
+        throw new Error(`${name}: bilinmeyen yer tutucu {{${key}}}`);
+      }
+      return values[key];
+    });
+    // Kapanmamış ya da bozuk yer tutucu ({{kunye}, {kunye}}) sayfaya çıkmasın.
+    if (/\{\{|\}\}/.test(output)) {
+      throw new Error(`${name}: kapanmamış yer tutucu ("{{" ya da "}}")`);
     }
-    return values[key];
-  });
-  // Kapanmamış ya da bozuk yer tutucu ({{kunye}, {kunye}}) sayfaya çıkmasın.
-  if (/\{\{|\}\}/.test(source)) {
-    throw new Error(`${name}: kapanmamış yer tutucu ("{{" ya da "}}")`);
-  }
+    return output;
+  };
 
   return {
-    title: data.title,
-    description: data.description ?? "",
-    intro: data.intro ?? "",
-    updated: data.updated,
-    html: markdown.parse(source, { async: false }),
+    title: fill(data.title),
+    description: fill(data.description ?? ""),
+    intro: fill(data.intro ?? ""),
+    updated: fill(data.updated),
+    html: markdown.parse(fill(body), { async: false }),
   };
 }
 
