@@ -85,6 +85,16 @@ alabiliyor.
 - Production **ve build** ortamında `FIREBASE_SERVICE_ACCOUNT_BASE64`
   tanımlı olmalı. `/etkinlikler` artık ISR ile build sırasında da
   üretiliyor.
+- Üretimde okuma hataları artık yutulmuyor (`src/lib/events/fetch.ts` →
+  `STRICT`): geçici bir Firestore hatasında önceki sağlam sayfa sunulmaya
+  devam ediyor. Bunun sonucu olarak, bu değişken **eksikse**:
+  - build yine geçer (build sırasında hata yutulur),
+  - `/etkinlikler` ve sitemap build anındaki (boş) sürümde takılı kalır,
+  - önbellekte olmayan etkinlik detay sayfaları 404 yerine **500** verir.
+
+  Bu belirtiler görülürse ilk kontrol edilecek yer bu değişkendir; Vercel
+  fonksiyon loglarında `[fetchAllEvents]` / `[fetchEventById]` hataları
+  görünür.
 - Bu doğrulandıktan sonra `src/lib/firebase.ts` üzerindeki istemci SDK yedeği
   tamamen kaldırılabilir; kurallar nedeniyle zaten hiç çalışmıyor.
 
