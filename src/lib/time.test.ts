@@ -53,6 +53,11 @@ describe("parseWallDate", () => {
     // Eski new Date() yedeğinin okuduğu biçimler
     ["2026/09/23", sep23],
     ["2026-9-23", sep23],
+    ["2026/09/23 23:30", sep23],
+    // Saat dilimli ISO dışı metin: sunucu saatinden bağımsız İstanbul günü
+    // (01:30 +03:00 = önceki gün 22:30 UTC)
+    ["Wed Sep 23 2026 01:30:00 GMT+0300", sep23],
+    ["2026-09-23 01:30:00+03:00", sep23],
   ])("%s", (raw, expected) => {
     expect(parseWallDate(raw)).toEqual(expected);
   });
@@ -84,6 +89,13 @@ describe("eventStartInstant", () => {
   it("saat alanı yoksa ISO içindeki saati kullanır", () => {
     expect(eventStartInstant("2026-09-23T20:00:00.000", "")?.toISOString()).toBe(expected);
     expect(eventStartInstant("2026-09-23T17:00:00.000Z", "")?.toISOString()).toBe(expected);
+  });
+
+  it("boşlukla ayrılmış saat ve saat dilimli metin", () => {
+    expect(eventStartInstant("2026/09/23 20:00", "")?.toISOString()).toBe(expected);
+    expect(
+      eventStartInstant("Wed Sep 23 2026 20:00:00 GMT+0300", "")?.toISOString(),
+    ).toBe(expected);
   });
 
   it("saat hiç yoksa İstanbul gün başı", () => {

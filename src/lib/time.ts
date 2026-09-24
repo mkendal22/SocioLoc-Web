@@ -97,6 +97,8 @@ function validWallDate(d: WallDate): WallDate | null {
 }
 
 const OFFSET_ISO = /T.*(Z|[+-]\d{2}:?\d{2})$/i;
+/** ISO dışı metinde saat dilimi belirtisi: "GMT+0300", "UTC", "…+03:00". */
+const EXPLICIT_ZONE = /\b(GMT|UTC)\b|[+-]\d{2}:?\d{2}$|\dZ$/i;
 
 /**
  * Mobilin yazdığı tarih biçimlerini İstanbul takvim gününe çevirir:
@@ -123,10 +125,13 @@ export function parseWallDate(raw: string): WallDate | null {
   if (m) return validWallDate({ year: +m[1], month: +m[2], day: +m[3] });
 
   // Diğer biçimler ("2026/09/23", "2026-9-23"…): eski kod new Date() ile
-  // okuyordu; uyum için aynı yedek. Saat dilimi yazılmamış metinleri JS yerel
-  // saat kabul eder, yani yazılan gün = yerel takvim bileşenleri.
+  // okuyordu; uyum için aynı yedek.
   const d = new Date(s);
   if (Number.isNaN(d.getTime())) return null;
+  // Saat dilimi yazılmışsa gerçek bir andır: İstanbul günü (sunucu/tarayıcı
+  // aynı sonucu verir).
+  if (EXPLICIT_ZONE.test(s)) return istanbulWallDate(d);
+  // Yazılmamışsa JS metni yerel saat kabul eder: yazılan gün = yerel bileşenler.
   return validWallDate({
     year: d.getFullYear(),
     month: d.getMonth() + 1,
@@ -155,11 +160,13 @@ export function eventStartInstant(date: string, time: string): Date | null {
   let clock = parseClock(time);
   if (!clock) {
     const s = date.trim();
-    if (OFFSET_ISO.test(s)) {
+    // Saat dilimli metin (ISO ya da değil) gerçek bir andır.
+    if (OFFSET_ISO.test(s) || EXPLICIT_ZONE.test(s)) {
       const d = new Date(s);
       return Number.isNaN(d.getTime()) ? null : d;
     }
-    const m = s.match(/T(\d{2}):(\d{2})/);
+    // "2026-09-23T20:00" ya da "2026/09/23 20:00": metindeki saat İstanbul saati.
+    const m = s.match(/[T\s](\d{1,2}):(\d{2})/);
     clock = m ? { hour: +m[1], minute: +m[2] } : { hour: 0, minute: 0 };
   }
   return istanbulDate(wall.year, wall.month, wall.day, clock.hour, clock.minute);
