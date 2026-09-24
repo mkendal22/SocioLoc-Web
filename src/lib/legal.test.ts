@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { SITE } from "./config";
 import { getLegalDoc, renderLegalMarkdown, type LegalSlug } from "./legal";
 
 const SLUGS: LegalSlug[] = [
@@ -68,7 +69,8 @@ describe("renderLegalMarkdown", () => {
 
   it("üst bilgideki yer tutucular da çözülür ve denetlenir", () => {
     const raw = doc("Metin").replace("title: Deneme", "title: Deneme\nintro: {{web}} için");
-    expect(renderLegalMarkdown("deneme.md", raw).intro).toBe("www.socioloc.app için");
+    const web = new URL(SITE.url).host;
+    expect(renderLegalMarkdown("deneme.md", raw).intro).toBe(`${web} için`);
     const bad = doc("Metin").replace("title: Deneme", "title: Deneme\nintro: {{kunye}");
     expect(() => renderLegalMarkdown("deneme.md", bad)).toThrow(/kapanmamış/);
   });
