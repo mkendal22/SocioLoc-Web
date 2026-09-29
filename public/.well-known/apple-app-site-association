@@ -5,7 +5,9 @@
       {
         "appIDs": ["XDKZ22YVKR.com.socioloc.app"],
         "components": [
-          { "/": "/event/*", "comment": "Etkinlik deep link" }
+          { "/": "/event/*", "comment": "Etkinlik ve alt sayfalari" },
+          { "/": "/post/*", "comment": "Gonderi" },
+          { "/": "/business/*", "comment": "Isletme profili, eski bicim" }
         ]
       }
     ]
