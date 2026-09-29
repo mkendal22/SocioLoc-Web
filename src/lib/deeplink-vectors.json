@@ -1,0 +1,20 @@
+[
+  { "in": "https://www.socioloc.app/event/7fQk2LwXa9Pz3RmTb1Yc", "kind": "event", "id": "7fQk2LwXa9Pz3RmTb1Yc", "path": "/event/7fQk2LwXa9Pz3RmTb1Yc" },
+  { "in": "https://www.socioloc.app/event/7fQk2LwXa9Pz3RmTb1Yc/ticket?utm_source=app", "kind": "event", "id": "7fQk2LwXa9Pz3RmTb1Yc", "path": "/event/7fQk2LwXa9Pz3RmTb1Yc/ticket" },
+  { "in": "https://www.socioloc.app/event/7fQk2LwXa9Pz3RmTb1Yc/check-in", "kind": "event", "id": "7fQk2LwXa9Pz3RmTb1Yc", "path": "/event/7fQk2LwXa9Pz3RmTb1Yc/check-in" },
+  { "in": "https://www.socioloc.app/post/Hn4c9QeR2sTuV6wXy8Za", "kind": "post", "id": "Hn4c9QeR2sTuV6wXy8Za", "path": "/post/Hn4c9QeR2sTuV6wXy8Za" },
+  { "in": "https://www.socioloc.app/u/Zq81hV3kLmP0sT7wYb2Nc4Rd5Ex6/followers", "kind": "profile", "id": "Zq81hV3kLmP0sT7wYb2Nc4Rd5Ex6", "path": "/u/Zq81hV3kLmP0sT7wYb2Nc4Rd5Ex6/followers" },
+  { "in": "https://socioloc.app/user/Zq81hV3kLmP0sT7wYb2Nc4Rd5Ex6", "kind": "profile", "id": "Zq81hV3kLmP0sT7wYb2Nc4Rd5Ex6", "path": "/user/Zq81hV3kLmP0sT7wYb2Nc4Rd5Ex6" },
+  { "in": "socioloc://business/Zq81hV3kLmP0sT7wYb2Nc4Rd5Ex6", "kind": "profile", "id": "Zq81hV3kLmP0sT7wYb2Nc4Rd5Ex6", "path": "/business/Zq81hV3kLmP0sT7wYb2Nc4Rd5Ex6" },
+  { "in": "https://www.socioloc.app/App/Discover", "kind": "screen", "path": "/app/discover" },
+  { "in": "https://www.socioloc.app/app/rewards/leaderboard", "kind": "screen", "path": "/app/rewards/leaderboard" },
+  { "in": "https://www.socioloc.app/app/support/T1ck3t_42", "kind": "support", "id": "T1ck3t_42", "path": "/app/support/T1ck3t_42" },
+  { "in": "https://www.socioloc.app/app/business/Zq81hV3kLmP0sT7wYb2Nc4Rd5Ex6/revenue", "kind": "business", "id": "Zq81hV3kLmP0sT7wYb2Nc4Rd5Ex6", "path": "/app/business/Zq81hV3kLmP0sT7wYb2Nc4Rd5Ex6/revenue" },
+  { "in": "https://www.socioloc.app/app/settings/password", "kind": null },
+  { "in": "https://www.socioloc.app/app/messages/Zq81hV3kLmP0sT7wYb2Nc4Rd5Ex6", "kind": null },
+  { "in": "https://www.socioloc.app/event/..%2Fadmin", "kind": null },
+  { "in": "https://www.socioloc.app/event/7fQk2LwXa9Pz3RmTb1Yc/payment", "kind": null },
+  { "in": "https://www.socioloc.app/etkinlikler", "kind": null },
+  { "in": "http://www.socioloc.app/event/7fQk2LwXa9Pz3RmTb1Yc", "kind": null },
+  { "in": "https://socioloc-app.example/event/7fQk2LwXa9Pz3RmTb1Yc", "kind": null }
+]

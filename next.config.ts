@@ -37,7 +37,13 @@ const SECURITY_HEADERS = [
 const nextConfig: NextConfig = {
   serverExternalPackages: ["firebase-admin"],
   async redirects() {
-    if (CANONICAL_HOST === APEX_HOST) return [];
+    // Eski profil linkleri tek adrese (/u/:uid) gider; uygulama bu biçimleri
+    // zaten doğrudan açar (bkz. src/lib/links.ts).
+    const legacyProfiles = [
+      { source: "/user/:uid", destination: "/u/:uid", permanent: true },
+      { source: "/business/:uid", destination: "/u/:uid", permanent: true },
+    ];
+    if (CANONICAL_HOST === APEX_HOST) return legacyProfiles;
     return [
       {
         // socioloc.app → www (308). /.well-known hariç: Apple ve Google
@@ -49,6 +55,7 @@ const nextConfig: NextConfig = {
         destination: `${SITE_URL}/:path`,
         permanent: true,
       },
+      ...legacyProfiles,
     ];
   },
   async headers() {
