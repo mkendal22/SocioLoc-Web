@@ -34,6 +34,13 @@ export interface EventModel {
   city: string | null;
   participantGender: string | null;
   verifiedOnly: boolean;
+  /** "public" ya da "followers". Alan yoksa "public" (eski etkinlikler). */
+  audience: string;
+  cancelled: boolean;
+  /** Moderasyonla ya da yasakla gizlendi. */
+  isHidden: boolean;
+  /** Düzenleyen arşivledi ya da hesap dondurulunca arşivlendi. */
+  archived: boolean;
 }
 
 /**
@@ -138,6 +145,10 @@ export function eventFromMap(
     city: (raw.city as string | null) ?? null,
     participantGender: (raw.participantGender as string | null) ?? null,
     verifiedOnly: raw.verifiedOnly === true,
+    audience: raw.audience == null ? "public" : toStr(raw.audience),
+    cancelled: raw.cancelled === true,
+    isHidden: raw.isHidden === true,
+    archived: raw.archived === true,
   };
 }
 

@@ -31,6 +31,10 @@ export function makeEvent(over: Partial<EventModel> = {}): EventModel {
     city: null,
     participantGender: null,
     verifiedOnly: false,
+    audience: "public",
+    cancelled: false,
+    isHidden: false,
+    archived: false,
     ...over,
   };
 }

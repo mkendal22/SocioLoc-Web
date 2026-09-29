@@ -2,6 +2,7 @@ import type { MetadataRoute } from "next";
 import { SITE } from "@/lib/config";
 import { fetchAllEvents } from "@/lib/events/fetch";
 import { parseEventStart } from "@/lib/events/types";
+import { isListable } from "@/lib/events/visibility";
 
 /** Etkinlik URL'leri saatte bir tazelenir (ISR). */
 export const revalidate = 3600;
@@ -27,6 +28,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const all = await fetchAllEvents(300);
   const events: MetadataRoute.Sitemap = all
     .filter((e) => {
+      // Yalnız herkese açık etkinlikler; kilitli, iptal ve gizli sayfalar noindex.
+      if (!isListable(e)) return false;
       const start = parseEventStart(e);
       return (
         start !== null &&

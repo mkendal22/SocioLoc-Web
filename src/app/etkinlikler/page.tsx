@@ -7,6 +7,7 @@ import { fetchAllEvents } from "@/lib/events/fetch";
 import { applyFilters } from "@/lib/events/filter";
 import { rankEvents } from "@/lib/events/ranking";
 import { toPublicEvent } from "@/lib/events/public";
+import { isListable } from "@/lib/events/visibility";
 import type { PublicEvent } from "@/lib/events/types";
 import { SITE } from "@/lib/config";
 
@@ -39,8 +40,11 @@ async function loadEvents(): Promise<{ events: PublicEvent[]; renderedAt: number
   const all = await fetchAllEvents(300);
   const renderedAt = Date.now();
   const now = new Date(renderedAt);
+  // Takipçilere özel, arşivlenmiş, gizlenmiş ve iptal edilmiş etkinlikler
+  // listeye girmez (uygulamanın keşif listesiyle aynı kural).
+  const listable = all.filter(isListable);
   // Default filtreler: süresi geçmiş 3 günden eski gizli, eventType filtresi yok
-  const filtered = applyFilters(all, { selectedDateFilter: "Tümü", now });
+  const filtered = applyFilters(listable, { selectedDateFilter: "Tümü", now });
   // Tarayıcıya yalnızca herkese açık alanlar gider (UID, konum, link yok).
   const events = rankEvents(filtered, { now }).map(toPublicEvent);
   if (process.env.NODE_ENV === "development") {
