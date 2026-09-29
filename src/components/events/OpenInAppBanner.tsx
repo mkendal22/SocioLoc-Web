@@ -38,11 +38,18 @@ export function OpenInAppBanner({ eventId }: { eventId: string }) {
   const platform = usePlatform();
   const [closed, setClosed] = useState(false);
 
+  // Mağaza yedeği /indir üzerinden: Android'de Play referrer'ı etkinlik
+  // linkini taşır (kurulumdan sonra etkinlik açılabilir), iOS'ta App Store
+  // kampanya ölçümü eklenir.
   const storeUrl = useMemo(() => {
-    if (platform === "ios") return SITE.appStoreUrl;
-    if (platform === "android") return SITE.googlePlayUrl;
-    return null;
-  }, [platform]);
+    const params = new URLSearchParams({
+      link: `/event/${eventId}`,
+      utm_source: "socioloc_web",
+      utm_medium: "open_in_app",
+      utm_campaign: "event",
+    });
+    return `${SITE.url}/indir?${params}`;
+  }, [eventId]);
 
   if (closed || platform === null || platform === "other") return null;
 
@@ -56,7 +63,7 @@ export function OpenInAppBanner({ eventId }: { eventId: string }) {
     // (Eskiden scheme=https ile `https://event/<id>` üretiliyordu; host
     // "event" olduğundan uygulamanın filtresiyle eşleşmiyordu.)
     if (platform === "android") {
-      const fallback = encodeURIComponent(SITE.googlePlayUrl);
+      const fallback = encodeURIComponent(storeUrl);
       const intent =
         `intent://event/${encodeURIComponent(eventId)}` +
         `#Intent;scheme=socioloc;package=${SITE.androidPackage};` +
@@ -73,11 +80,7 @@ export function OpenInAppBanner({ eventId }: { eventId: string }) {
     window.location.href = scheme;
 
     const tStore = window.setTimeout(() => {
-      if (
-        storeUrl &&
-        document.visibilityState === "visible" &&
-        Date.now() - started < 3500
-      ) {
+      if (document.visibilityState === "visible" && Date.now() - started < 3500) {
         window.location.href = storeUrl;
       }
     }, 1500);
