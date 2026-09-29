@@ -140,7 +140,9 @@ Canlıdaki kod bu repodan farklı:
 
 - www canonical adresleri iki tarafta da var.
 - Canlıdaki sitemap tüm etkinlikleri listeliyor; bu branch yalnızca
-  yaklaşanları (son 3 gün dahil) listeliyor.
+  yaklaşanları (son 3 gün dahil) ve herkese açık olanları listeliyor.
+- Canlıda `/post/:id` ana sayfaya yönleniyor; bu kural kaldırılmalı. Bu
+  branch'te `/post/{id}` uygulama kapısına gidiyor (`docs/deeplink.md`).
 
 Taşımadan önce iki repo karşılaştırılmalı. Bu branch'in commit'leri
 birbirinden bağımsız olduğu için tek tek cherry-pick edilebilir.
@@ -149,3 +151,45 @@ birbirinden bağımsız olduğu için tek tek cherry-pick edilebilir.
 
 Google Search Console'da `https://www.socioloc.app` mülkü doğrulanıp
 `/sitemap.xml` gönderilebilir.
+
+## 10. App Store kampanya ölçümü (opsiyonel)
+
+**Kim:** App Store Connect erişimi olan kişi
+
+Uygulama kapısı ve indirme linkleri iPhone'u App Store'a gönderirken
+kampanya parametresi ekleyebilir; kurulumlar App Store Connect → App
+Analytics → Sources altında kampanya bazında görünür.
+
+1. App Store Connect → App Analytics → Campaigns → kampanya linki oluştur;
+   linkteki `pt=` değeri sağlayıcı kimliğidir (yalnız rakam).
+2. Vercel ortam değişkeni: `APP_STORE_PROVIDER_TOKEN=<pt değeri>`.
+
+Tanımlanmazsa App Store'a parametresiz gidilir; başka bir şey değişmez.
+
+## 11. Cloudflare: uygulama kapısı önbelleğe alınmamalı
+
+**Kim:** DNS yöneticisi
+
+`/post/*`, `/u/*`, `/app/*`, `/event/*/*` ve `/indir` yanıtları cihaza göre
+değişir (iPhone → App Store, Android → Play, masaüstü → sayfa). Yanıtlar
+`Cache-Control: private, no-store` taşıyor. Cloudflare'de "Cache Everything"
+gibi HTML'i önbelleğe alan bir kural varsa bu yollar hariç tutulmalı; aksi
+halde bir iPhone kullanıcısına masaüstü sayfası dönebilir.
+
+**Doğrulama**
+
+```bash
+curl -sI -A "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X)" https://www.socioloc.app/u/test123 | grep -iE "^HTTP|^location|^cf-cache-status"
+```
+
+`302` ve App Store adresi dönmeli; `cf-cache-status: HIT` olmamalı.
+
+## 12. AASA'nın ikinci aşaması
+
+**Kim:** Web ekibi, mobil sürümden sonra
+
+Bu dalda AASA'ya `/post/*` ve `/business/*` eklendi; mevcut iOS sürümü bu
+linkleri işliyor. `/u/*`, `/user/*` ve `/app/*` yolları, uygulamanın bunları
+işleyen sürümü kullanıcıların çoğuna ulaştıktan sonra eklenmeli (bkz.
+`docs/deeplink.md`). Erken eklenirse eski sürüm linki alır ama işleyemez;
+kullanıcı ana sayfada kalır.
