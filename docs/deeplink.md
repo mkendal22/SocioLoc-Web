@@ -57,13 +57,52 @@ listesinin web karşılığı.
 4. Mobilde rota tablosuna aynı satırı ekle.
 5. iOS AASA ve Android manifest yolları kapsıyor mu, kontrol et.
 
-## AASA aşamaları
+## AASA ve Android yolları
 
 `public/.well-known/apple-app-site-association` sürüme göre ayrılamaz: eklenen
-yolu uygulamanın eski sürümleri de alır.
+yolu uygulamanın eski sürümleri de alır. Yollar: `/event/*`, `/post/*`,
+`/u/*`, `/app/*` ve eski biçimler `/user/*`, `/business/*`.
 
-- Bugün: `/event/*`, `/post/*`, `/business/*` (mevcut iOS sürümü bu türleri işliyor).
-- Uygulamanın yeni sürümü yaygınlaşınca: `/u/*`, `/user/*`, `/app/*`.
+- `/u/*` ve `/app/*` mobil sürümden önce canlıda olmalı (bkz. "Yayın
+  sırası"). Yeni sürüm işletme profilini `/u/{uid}` olarak paylaşıyor; yol
+  sahiplenilmezse uygulaması olan iPhone kullanıcısı App Store'a düşer (eski
+  `/business/*` uygulamayı açıyordu).
+- Eski sürümler `/u/…` ve `/app/…` linkinde uygulamayı ana sayfada açar;
+  hedefi bilmez ama çökmez.
+- Android'de yollar uygulamanın prod manifestinde (`android/app/src/prod/
+  AndroidManifest.xml`), sürümle birlikte gelir. Yalnız `www.socioloc.app`
+  sahiplenilir: apex `.well-known` dosyalarını www'ye yönlendiriyor ve Android
+  doğrulaması yönlendirme izlemez.
+- `assetlinks.json`: canlı sitede henüz yer tutucu var; bu depodaki parmak izi
+  (Play uygulama imzalama anahtarı) yayında olmadan Android App Links
+  doğrulanmaz.
+
+## Yayın sırası
+
+Canlı site (www.socioloc.app) başka bir depodan yayınlanıyor; bu depodaki
+derin link değişiklikleri canlıya ancak oraya taşınınca (ya da site bu
+depodan yayınlanınca) çıkar. 30 Eylül 2026'da canlıda AASA yalnız
+`/event/*` içeriyor, `assetlinks.json` yer tutucu, `/indir`, `/u/…`,
+`/app/…` ve `/event/{id}/…` 404.
+
+Uygulamanın yeni sürümü bu adresleri paylaşıyor (profil `/u/{uid}`, davet
+`/indir`). Bu yüzden **web, mobil sürüm mağazaya gönderilmeden önce**
+canlıda olmalı: AASA, `assetlinks.json`, uygulama kapısı rotaları ve
+`/indir`. Mobil sürümden önce kontrol:
+
+```bash
+curl -s https://www.socioloc.app/.well-known/apple-app-site-association | grep -c '"/u/\*"'
+```
+
+```bash
+curl -s https://www.socioloc.app/.well-known/assetlinks.json | grep -c "B7:83:E8"
+```
+
+```bash
+curl -s -o /dev/null -w "%{http_code}\n" -A "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X)" https://www.socioloc.app/u/test123
+```
+
+İlk ikisi 1, üçüncüsü 302 dönmeli.
 
 ## Deneme
 

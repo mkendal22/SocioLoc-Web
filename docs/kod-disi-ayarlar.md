@@ -49,6 +49,13 @@ Firebase'de kayıtlı diğer SHA-256 değeri (`AA:DA:29:D9:…:09:D2`) bir
 geliştirici bilgisayarındaki `debug.keystore`'a ait; assetlinks'e
 **eklenmemeli**.
 
+**Durum (29 Eyl 2026):** Play Console'daki uygulama imzalama SHA-256'sı
+teyit edildi, yukarıdaki değerle aynı. Bu depoda değişiklik gerekmiyor.
+Canlı sitedeki `assetlinks.json` ise hâlâ yer tutucu
+(`BURAYA_ANDROID_KEYSTORE_SHA256_PARMAK_IZI_GELECEK`); Google'ın doğrulama
+servisi bunu hatalı parmak izi diye reddediyor. Site bu depodan yayınlanana
+ya da canlı dosya düzeltilene kadar Android App Links doğrulanmaz.
+
 1. Play Console → SocioLoc → Uygulama bütünlüğü (App integrity) → Uygulama
    imzalama → "Uygulama imzalama anahtarı sertifikası" altındaki SHA-256.
 2. Yukarıdaki değerle aynı değilse assetlinks.json'daki değeri onunla
@@ -184,12 +191,15 @@ curl -sI -A "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X)" https://www
 
 `302` ve App Store adresi dönmeli; `cf-cache-status: HIT` olmamalı.
 
-## 12. AASA'nın ikinci aşaması
+## 12. AASA yolları mobil sürümden önce
 
-**Kim:** Web ekibi, mobil sürümden sonra
+**Kim:** Web ekibi, mobil sürüm mağazaya gönderilmeden önce (canlı site
+başka depodan yayınlanıyor; değişiklik oraya taşınmalı, bkz.
+`docs/deeplink.md` "Yayın sırası")
 
-Bu dalda AASA'ya `/post/*` ve `/business/*` eklendi; mevcut iOS sürümü bu
-linkleri işliyor. `/u/*`, `/user/*` ve `/app/*` yolları, uygulamanın bunları
-işleyen sürümü kullanıcıların çoğuna ulaştıktan sonra eklenmeli (bkz.
-`docs/deeplink.md`). Erken eklenirse eski sürüm linki alır ama işleyemez;
-kullanıcı ana sayfada kalır.
+AASA artık `/u/*`, `/app/*` ve `/user/*` yollarını da içeriyor (29 Eyl 2026
+kararı; önceki plan bunları yeni sürüm yaygınlaşınca eklemekti). Neden: yeni
+sürüm işletme profilini `/u/{uid}` olarak paylaşıyor. Yol sahiplenilmezse
+uygulaması olan iPhone kullanıcısı App Store'a düşer; bugün `/business/*`
+uygulamayı açıyor. Eski sürümler bu yollarda uygulamayı ana sayfada açar,
+çökmez (bkz. `docs/deeplink.md`).
