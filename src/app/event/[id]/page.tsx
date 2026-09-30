@@ -301,6 +301,21 @@ export default async function EventDetailPage({ params }: Props) {
                   Google Play
                 </a>
               </div>
+
+              {/* Masaüstünde uygulama yok: telefona geçiş için QR. Telefonda
+                  uygulama yüklüyse link doğrudan uygulamada açılır. */}
+              <div className="mt-6 hidden md:flex items-center gap-4 rounded-2xl border border-white/[0.06] bg-surface/40 p-4">
+                <div
+                  role="img"
+                  aria-label="Etkinliğin QR kodu"
+                  className="w-24 shrink-0 overflow-hidden rounded-xl bg-white p-1.5 [&>svg]:block [&>svg]:h-auto [&>svg]:w-full"
+                  // Kendi linkimizden üretilen SVG; kullanıcı girdisi içermez.
+                  dangerouslySetInnerHTML={{ __html: qrSvg(`${SITE.url}/event/${encodeURIComponent(id)}`) }}
+                />
+                <p className="text-sm leading-relaxed text-white/65">
+                  Telefonunun kamerasıyla okut. SocioLoc yüklüyse etkinlik uygulamada açılır.
+                </p>
+              </div>
             </div>
           </div>
         </article>
