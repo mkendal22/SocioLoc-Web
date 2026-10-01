@@ -1,3 +1,4 @@
+import { dayNumber, istanbulWallDate } from "@/lib/time";
 import { allParticipants, parseEventStart, type EventModel } from "./types";
 
 // ── Ağırlıklar ──
@@ -127,9 +128,9 @@ function freshScore(e: EventModel, now: Date): number {
 
 function microBoost(eventStart: Date | null, now: Date): number {
   if (!eventStart) return 0;
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const ed = new Date(eventStart.getFullYear(), eventStart.getMonth(), eventStart.getDate());
-  const diff = Math.round((ed.getTime() - today.getTime()) / 86_400_000);
+  // "Bugün/yarın" Türkiye takvimine göre (sunucu UTC'de çalışır).
+  const diff =
+    dayNumber(istanbulWallDate(eventStart)) - dayNumber(istanbulWallDate(now));
   if (diff === 0) return BOOST_TODAY;
   if (diff === 1) return BOOST_TOMORROW;
   return 0;

@@ -1,11 +1,16 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import { Search, SlidersHorizontal, X } from "lucide-react";
 import { EventCard } from "@/components/events/EventCard";
 import { applyFilters, type DateFilter } from "@/lib/events/filter";
-import { rankEvents } from "@/lib/events/ranking";
-import type { EventModel } from "@/lib/events/types";
+import type { PublicEvent } from "@/lib/events/types";
 
 /**
  * Mobilde sayfa aşağı kaydırılırken filtre/arama barı yukarı gizlensin,
@@ -68,11 +73,30 @@ const TYPE_FILTERS: { id: "all" | "Mekan" | "Dijital"; label: string }[] = [
 
 const PAGE_SIZE = 20;
 
+/**
+ * Filtrelerin kullandığı "şimdi". Sayfa ISR ile önbelleklendiği için dakikalar,
+ * hatta saatler önce üretilmiş olabilir: hydration sırasında sunucunun
+ * kullandığı an (renderedAt) kullanılır ki ilk boyama sunucu HTML'iyle aynı
+ * olsun; ardından tarayıcı saatine geçilir ve dakikada bir tazelenir.
+ */
+function subscribeMinute(onChange: () => void) {
+  const id = window.setInterval(onChange, 60_000);
+  return () => window.clearInterval(id);
+}
+
+function currentMinute() {
+  return Math.floor(Date.now() / 60_000) * 60_000;
+}
+
 export function EventsExplorer({
   initialEvents,
+  renderedAt,
   showDevAdminHint = false,
 }: {
-  initialEvents: EventModel[];
+  /** Sunucuda sıralanmış, herkese açık alanlara indirgenmiş liste. */
+  initialEvents: PublicEvent[];
+  /** Sunucunun listeyi filtrelediği an (ms). */
+  renderedAt: number;
   /** Yerel: servis hesabı yoksa boş liste + kurulum ipucu */
   showDevAdminHint?: boolean;
 }) {
@@ -83,14 +107,23 @@ export function EventsExplorer({
   );
   const [visible, setVisible] = useState(PAGE_SIZE);
 
-  const filtered = useMemo(() => {
-    const list = applyFilters(initialEvents, {
-      searchQuery: query,
-      selectedDateFilter: dateFilter,
-      eventType: typeFilter === "all" ? null : typeFilter,
-    });
-    return rankEvents(list);
-  }, [initialEvents, query, dateFilter, typeFilter]);
+  const nowMs = useSyncExternalStore(
+    subscribeMinute,
+    currentMinute,
+    () => renderedAt,
+  );
+
+  // Sıralama sunucuda yapıldı; filtre sırayı korur.
+  const filtered = useMemo(
+    () =>
+      applyFilters(initialEvents, {
+        searchQuery: query,
+        selectedDateFilter: dateFilter,
+        eventType: typeFilter === "all" ? null : typeFilter,
+        now: new Date(nowMs),
+      }),
+    [initialEvents, query, dateFilter, typeFilter, nowMs],
+  );
 
   const hasFilters =
     query.trim().length > 0 || dateFilter !== "Tümü" || typeFilter !== "all";
@@ -122,7 +155,7 @@ export function EventsExplorer({
                 setQuery(e.target.value);
                 setVisible(PAGE_SIZE);
               }}
-              className="h-11 w-full rounded-full border border-white/10 bg-white/[0.04] pl-10 pr-10 text-sm text-white placeholder:text-white/40 focus:border-brand-500/60 focus:outline-none focus:ring-2 focus:ring-brand-500/30"
+              className="h-11 w-full rounded-full border border-white/10 bg-white/[0.04] pl-10 pr-10 text-sm text-white placeholder:text-white/55 focus:border-brand-500/60 focus:outline-none focus:ring-2 focus:ring-brand-500/30"
             />
             {query ? (
               <button
@@ -216,7 +249,7 @@ export function EventsExplorer({
         <>
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {visibleEvents.map((e) => (
-              <EventCard key={e.docId} data={e} />
+              <EventCard key={e.id} data={e} />
             ))}
           </div>
 

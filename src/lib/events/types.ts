@@ -1,3 +1,5 @@
+import { eventStartInstant } from "@/lib/time";
+
 export type EventGeoPoint = {
   latitude: number;
   longitude: number;
@@ -32,6 +34,37 @@ export interface EventModel {
   city: string | null;
   participantGender: string | null;
   verifiedOnly: boolean;
+  /** "public" ya da "followers". Alan yoksa "public" (eski etkinlikler). */
+  audience: string;
+  cancelled: boolean;
+  /** Moderasyonla ya da yasakla gizlendi. */
+  isHidden: boolean;
+  /** Düzenleyen arşivledi ya da hesap dondurulunca arşivlendi. */
+  archived: boolean;
+}
+
+/**
+ * Tarayıcıya gönderilen etkinlik: yalnızca kartın ve aramanın kullandığı
+ * alanlar. Katılımcı UID'leri, organizatör kimliği, koordinat, online link,
+ * kurallar vb. sunucuda kalır (bkz. `toPublicEvent`).
+ */
+export interface PublicEvent {
+  id: string;
+  title: string;
+  /** Arama için; etkinlik sayfasında zaten herkese açık. */
+  description: string;
+  date: string;
+  time: string;
+  /** Kısa konum ("Kadıköy, İstanbul" → "Kadıköy"); dijitalde boş. */
+  place: string;
+  category: string | null;
+  eventType: string;
+  image: string | null;
+  platformName: string | null;
+  participantCount: number;
+  participantLimit: number;
+  creatorNickname: string;
+  creatorPhoto: string;
 }
 
 function toDate(v: unknown): Date | null {
@@ -112,6 +145,10 @@ export function eventFromMap(
     city: (raw.city as string | null) ?? null,
     participantGender: (raw.participantGender as string | null) ?? null,
     verifiedOnly: raw.verifiedOnly === true,
+    audience: raw.audience == null ? "public" : toStr(raw.audience),
+    cancelled: raw.cancelled === true,
+    isHidden: raw.isHidden === true,
+    archived: raw.archived === true,
   };
 }
 
@@ -127,39 +164,10 @@ export function allParticipantCount(e: EventModel): number {
   return allParticipants(e).length;
 }
 
-/** `date` (YYYY-MM-DD veya DD.MM.YYYY veya ISO) + `time` (HH:mm) → Date. */
-export function parseEventStart(e: EventModel): Date | null {
-  if (!e.date) return null;
-  try {
-    let dt: Date;
-    if (e.date.includes("T")) {
-      dt = new Date(e.date);
-    } else if (e.date.includes(".")) {
-      const p = e.date.split(".");
-      dt = new Date(
-        parseInt(p[2], 10),
-        parseInt(p[1], 10) - 1,
-        parseInt(p[0], 10),
-      );
-    } else {
-      dt = new Date(e.date);
-    }
-    if (Number.isNaN(dt.getTime())) return null;
-
-    if (e.time) {
-      const tp = e.time.split(":");
-      if (tp.length >= 2) {
-        dt = new Date(
-          dt.getFullYear(),
-          dt.getMonth(),
-          dt.getDate(),
-          parseInt(tp[0], 10),
-          parseInt(tp[1], 10),
-        );
-      }
-    }
-    return dt;
-  } catch {
-    return null;
-  }
+/**
+ * `date` (YYYY-MM-DD, DD.MM.YYYY veya ISO) + `time` (HH:mm) → başlangıç anı.
+ * Saatler Türkiye saatiyle yorumlanır; sunucunun saat diliminden bağımsızdır.
+ */
+export function parseEventStart(e: { date: string; time: string }): Date | null {
+  return eventStartInstant(e.date, e.time);
 }

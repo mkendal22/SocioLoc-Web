@@ -1,15 +1,7 @@
 import Link from "next/link";
 import { ChevronRight, Mail } from "lucide-react";
 import { SITE } from "@/lib/config";
-import { LAST_UPDATED } from "@/lib/legal-texts";
-
-type Props = {
-  title: string;
-  intro?: string;
-  body: string;
-  current: string;
-  updated?: string;
-};
+import type { LegalDoc } from "@/lib/legal";
 
 const LINKS = [
   { href: "/gizlilik", label: "Gizlilik Politikası" },
@@ -20,12 +12,9 @@ const LINKS = [
   { href: "/ticari-elektronik-ileti", label: "Ticari Elektronik İleti" },
 ];
 
-export function LegalLayout({ title, intro, body, current, updated }: Props) {
-  // Body'i parse et: paragraflar (boş satırla ayrılmış)
-  const blocks = body
-    .split(/\n\s*\n/)
-    .map((b) => b.trim())
-    .filter(Boolean);
+export function LegalLayout({ doc }: { doc: LegalDoc }) {
+  const { title, intro, updated, html } = doc;
+  const current = `/${doc.slug}`;
 
   return (
     <main className="flex-1 relative">
@@ -70,7 +59,7 @@ export function LegalLayout({ title, intro, body, current, updated }: Props) {
                 );
               })}
               <div className="mt-2 px-3.5 py-3 border-t border-white/[0.06]">
-                <p className="text-xs text-white/45">İletişim</p>
+                <p className="text-xs text-white/60">İletişim</p>
                 <a
                   href={`mailto:${SITE.email}`}
                   className="mt-1 inline-flex items-center gap-2 text-xs text-white/85 hover:text-white"
@@ -92,7 +81,7 @@ export function LegalLayout({ title, intro, body, current, updated }: Props) {
                 {title}
               </h1>
               <p className="mt-3 text-sm text-white/55">
-                Son güncelleme: {updated ?? LAST_UPDATED}
+                Son güncelleme: {updated}
               </p>
               {intro && (
                 <p className="mt-6 text-white/70 text-balance leading-relaxed">
@@ -100,70 +89,14 @@ export function LegalLayout({ title, intro, body, current, updated }: Props) {
                 </p>
               )}
 
-              <div className="mt-8 space-y-5 text-[15px] leading-[1.85] text-white/80">
-                {blocks.map((block, i) => {
-                  // Başlık olabilecek satırları tespit et: kısa ve büyük harfle başlıyor
-                  const isHeading =
-                    block.length < 110 &&
-                    /^([0-9]+\.|[A-ZĞÜŞİÖÇa-z]).+$/.test(block) &&
-                    !block.includes(". ") &&
-                    block === block.trimEnd();
-                  // Tüm büyük harfli ana başlıklar
-                  if (
-                    i === 0 ||
-                    block === block.toUpperCase() ||
-                    /^\d+\.\s+[A-ZĞÜŞİÖÇ].{0,80}$/.test(block)
-                  ) {
-                    return (
-                      <h2
-                        key={i}
-                        className={
-                          i === 0
-                            ? "text-xl sm:text-2xl font-semibold tracking-tight text-white pt-2"
-                            : "text-lg font-semibold tracking-tight text-white pt-4"
-                        }
-                      >
-                        {block}
-                      </h2>
-                    );
-                  }
-                  // Madde işaretli liste
-                  if (block.split("\n").every((l) => l.trim().startsWith("•"))) {
-                    return (
-                      <ul key={i} className="space-y-2 pl-1">
-                        {block
-                          .split("\n")
-                          .map((l) => l.replace(/^•\s*/, ""))
-                          .filter(Boolean)
-                          .map((item, j) => (
-                            <li key={j} className="flex gap-3">
-                              <span className="mt-2.5 size-1.5 rounded-full bg-gradient-to-br from-brand-500 to-fuchsia-500 shrink-0" />
-                              <span>{item}</span>
-                            </li>
-                          ))}
-                      </ul>
-                    );
-                  }
-                  // Tek satırlık küçük başlık
-                  if (isHeading && block.length < 70 && !block.endsWith(".")) {
-                    return (
-                      <h3
-                        key={i}
-                        className="text-base font-semibold text-white pt-2"
-                      >
-                        {block}
-                      </h3>
-                    );
-                  }
-                  return (
-                    <p key={i} className="whitespace-pre-line">
-                      {block}
-                    </p>
-                  );
-                })}
-              </div>
+              {/* content/legal/<slug>.md → HTML (depodaki güvenilir içerik).
+                  Biçim: globals.css → .legal-prose */}
+              <div
+                className="legal-prose"
+                dangerouslySetInnerHTML={{ __html: html }}
+              />
 
-              <div className="mt-12 pt-6 border-t border-white/10 flex items-center justify-between text-xs text-white/45">
+              <div className="mt-12 pt-6 border-t border-white/10 flex items-center justify-between text-xs text-white/60">
                 <p>© {new Date().getFullYear()} SocioLoc</p>
                 <a
                   href={`mailto:${SITE.email}`}

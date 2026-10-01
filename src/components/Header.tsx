@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Menu, X, ArrowRight } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
-import { SITE } from "@/lib/config";
 
 const NAV = [
   { href: "/etkinlikler", label: "Etkinlikler" },
@@ -75,19 +74,17 @@ export function Header() {
         </nav>
 
         <div className="hidden md:flex items-center gap-3">
-          <a
-            className="btn-primary text-sm h-10 px-5 group"
-            href={SITE.appStoreUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
+          <a className="btn-primary text-sm h-10 px-5 group" href="/indir">
             İndir
             <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
           </a>
         </div>
 
         <button
-          aria-label="Menüyü aç/kapat"
+          type="button"
+          aria-label={open ? "Menüyü kapat" : "Menüyü aç"}
+          aria-expanded={open}
+          aria-controls="mobile-menu"
           onClick={() => setOpen((v) => !v)}
           className="md:hidden p-2 rounded-xl border border-white/10 bg-white/[0.04]"
         >
@@ -98,6 +95,7 @@ export function Header() {
       <AnimatePresence>
         {open && (
           <motion.div
+            id="mobile-menu"
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
@@ -120,9 +118,7 @@ export function Header() {
               ))}
               <a
                 className="btn-primary mt-3 self-start text-sm h-11 px-6"
-                href={SITE.appStoreUrl}
-                target="_blank"
-                rel="noopener noreferrer"
+                href="/indir"
               >
                 İndir
                 <ArrowRight className="size-4" />

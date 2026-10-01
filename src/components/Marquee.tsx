@@ -1,5 +1,3 @@
-"use client";
-
 const TAGS = [
   "Etkinlik",
   "Sohbet",

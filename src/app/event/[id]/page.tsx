@@ -1,15 +1,31 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { cache } from "react";
 import { Calendar, MapPin, Users, Video, Tag, ArrowRight } from "lucide-react";
+import { AppGate } from "@/components/AppGate";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { OpenInAppBanner } from "@/components/events/OpenInAppBanner";
 import { fetchEventById } from "@/lib/events/fetch";
-import { allParticipantCount, parseEventStart, type EventModel } from "@/lib/events/types";
+import { eventMetadata } from "@/lib/events/metadata";
+import { allParticipantCount, parseEventStart } from "@/lib/events/types";
+import { eventVisibility } from "@/lib/events/visibility";
 import { SITE } from "@/lib/config";
+import { qrSvg } from "@/lib/qr";
+import { appStoreUrl, playStoreUrl } from "@/lib/stores";
+import { parseWallDate, toIstanbulISO } from "@/lib/time";
 
 export const revalidate = 60;
+
+/**
+ * Metadata ve sayfa aynı okumayı paylaşır: ikisi farklı görünürlük görürse
+ * kilitli bir etkinliğin başlığı önizlemeye sızabilirdi.
+ */
+const loadEvent = cache(fetchEventById);
+
+/** Kilitli etkinlikteki kapının mağaza linkleri bu kaynakla ölçülür. */
+const GATE_UTM = { utm_source: "socioloc_web", utm_medium: "app_gate", utm_campaign: "event" };
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -31,74 +47,57 @@ const TR_MONTHS = [
 ];
 
 function formatDateLong(rawDate: string): string {
-  if (!rawDate) return "";
-  try {
-    const dt = new Date(rawDate);
-    if (Number.isNaN(dt.getTime())) return "";
-    return `${dt.getDate()} ${TR_MONTHS[dt.getMonth()]} ${dt.getFullYear()}`;
-  } catch {
-    return "";
-  }
+  // Türkiye takvim günü; sunucunun (UTC) saat diliminden bağımsız.
+  const wall = parseWallDate(rawDate);
+  if (!wall) return "";
+  return `${wall.day} ${TR_MONTHS[wall.month - 1]} ${wall.year}`;
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
-  let ev: EventModel | null = null;
   try {
-    ev = await fetchEventById(id);
+    return eventMetadata(id, await loadEvent(id));
   } catch {
-    ev = null;
+    // Okuma hatasında sayfa da hata verir (fetch.ts → STRICT); içerik yazılmaz.
+    return { title: "Etkinlik" };
   }
-
-  const title = ev?.title || "Etkinlik";
-  const desc =
-    ev?.description?.slice(0, 160) ||
-    "SocioLoc'ta bu etkinliğe göz at ve katıl.";
-  const image = ev?.thumbUrl || ev?.image || `${SITE.url}/og.png`;
-  const url = `${SITE.url}/event/${id}`;
-
-  return {
-    title,
-    description: desc,
-    alternates: { canonical: `/event/${id}` },
-    openGraph: {
-      title: `${title} — ${SITE.name}`,
-      description: desc,
-      url,
-      siteName: SITE.name,
-      locale: "tr_TR",
-      images: [{ url: image, width: 1200, height: 630, alt: title }],
-      type: "article",
-    },
-    twitter: {
-      card: "summary_large_image",
-      title,
-      description: desc,
-      images: [image],
-    },
-    // iOS Smart App Banner — Safari'de bu sayfa açılınca üstte "App'te Aç"
-    // butonu görünür. app-argument deep link path'i taşır; uygulama açılınca
-    // doğrudan etkinliğe yönlendirilir.
-    other: {
-      "apple-itunes-app": `app-id=${SITE.appStoreId}, app-argument=${url}`,
-    },
-  };
 }
 
 export default async function EventDetailPage({ params }: Props) {
   const { id } = await params;
 
-  let ev: EventModel | null = null;
-  try {
-    ev = await fetchEventById(id);
-  } catch (e) {
-    console.error("[event] fetch error", e);
-  }
-
+  // Okuma hatası üretimde fırlatılır (fetch.ts → STRICT): geçici bir Firestore
+  // sorunu yayındaki etkinliği 404 olarak önbelleğe sokmaz.
+  const ev = await loadEvent(id);
   if (!ev) {
     notFound();
   }
 
+  const visibility = eventVisibility(ev);
+  // Moderasyonla gizlenen etkinlik "yok" ile aynı görünür; karar dışarı sızmaz.
+  if (visibility === "removed") {
+    notFound();
+  }
+
+  // Takipçilere özel ya da arşivlenmiş: ayrıntı yok, uygulama kapısı.
+  if (visibility === "locked") {
+    const path = `/event/${encodeURIComponent(id)}`;
+    return (
+      <AppGate
+        title="Bu etkinlik SocioLoc uygulamasında"
+        description="Ayrıntılarını görmek için SocioLoc uygulamasını indir. Uygulama yüklüyse bu linke telefonundan dokunduğunda doğrudan açılır."
+        appStoreHref={appStoreUrl(GATE_UTM)}
+        playStoreHref={playStoreUrl(path, GATE_UTM)}
+        qrSvg={qrSvg(`${SITE.url}${path}`)}
+      />
+    );
+  }
+
+  const cancelled = visibility === "cancelled";
+  // Mağaza linkleri kaynağı taşır; Play referrer'ı kurulumdan sonra bu etkinliği açtırır.
+  const storeUtm = { utm_source: "socioloc_web", utm_medium: "event_page", utm_campaign: "event" };
+  const appStoreHref = appStoreUrl(storeUtm);
+  const playStoreHref = playStoreUrl(`/event/${encodeURIComponent(id)}`, storeUtm);
   const start = parseEventStart(ev);
   const isDigital = ev.eventType === "Dijital";
   const imageUrl = ev.image || ev.thumbUrl || "";
@@ -113,16 +112,21 @@ export default async function EventDetailPage({ params }: Props) {
     "@type": "Event",
     name: ev.title || "Etkinlik",
     description: ev.description || undefined,
-    startDate: start?.toISOString(),
+    // Ofsetli Türkiye saati: "2026-09-23T20:00:00+03:00"
+    startDate: start ? toIstanbulISO(start) : undefined,
     image: imageUrl ? [imageUrl] : undefined,
     eventAttendanceMode: isDigital
       ? "https://schema.org/OnlineEventAttendanceMode"
       : "https://schema.org/OfflineEventAttendanceMode",
-    eventStatus: "https://schema.org/EventScheduled",
+    eventStatus: cancelled
+      ? "https://schema.org/EventCancelled"
+      : "https://schema.org/EventScheduled",
     location: isDigital
       ? {
           "@type": "VirtualLocation",
-          url: ev.onlineLink || `${SITE.url}/event/${id}`,
+          // Toplantı linki (onlineLink) yalnızca katılımcılara; herkese açık
+          // yapısal veriye sayfanın kendi adresi yazılır.
+          url: `${SITE.url}/event/${id}`,
         }
       : {
           "@type": "Place",
@@ -154,6 +158,15 @@ export default async function EventDetailPage({ params }: Props) {
             <span aria-hidden>←</span>
             Tüm etkinlikler
           </Link>
+
+          {cancelled ? (
+            <div
+              role="status"
+              className="mt-6 rounded-2xl border border-red-400/25 bg-red-500/10 px-5 py-4 text-sm font-medium text-red-100"
+            >
+              Bu etkinlik iptal edildi.
+            </div>
+          ) : null}
 
           <div className="mt-6 grid gap-8 lg:grid-cols-[1.1fr_1fr]">
             <div className="overflow-hidden rounded-3xl border border-white/[0.06] bg-surface-2">
@@ -272,7 +285,7 @@ export default async function EventDetailPage({ params }: Props) {
                   <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
                 </a>
                 <a
-                  href={SITE.appStoreUrl}
+                  href={appStoreHref}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="rounded-full border border-white/10 bg-white/[0.04] px-5 h-11 inline-flex items-center text-sm text-white/85 hover:bg-white/[0.08]"
@@ -280,13 +293,28 @@ export default async function EventDetailPage({ params }: Props) {
                   App Store
                 </a>
                 <a
-                  href={SITE.googlePlayUrl}
+                  href={playStoreHref}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="rounded-full border border-white/10 bg-white/[0.04] px-5 h-11 inline-flex items-center text-sm text-white/85 hover:bg-white/[0.08]"
                 >
                   Google Play
                 </a>
+              </div>
+
+              {/* Masaüstünde uygulama yok: telefona geçiş için QR. Telefonda
+                  uygulama yüklüyse link doğrudan uygulamada açılır. */}
+              <div className="mt-6 hidden md:flex items-center gap-4 rounded-2xl border border-white/[0.06] bg-surface/40 p-4">
+                <div
+                  role="img"
+                  aria-label="Etkinliğin QR kodu"
+                  className="w-24 shrink-0 overflow-hidden rounded-xl bg-white p-1.5 [&>svg]:block [&>svg]:h-auto [&>svg]:w-full"
+                  // Kendi linkimizden üretilen SVG; kullanıcı girdisi içermez.
+                  dangerouslySetInnerHTML={{ __html: qrSvg(`${SITE.url}/event/${encodeURIComponent(id)}`) }}
+                />
+                <p className="text-sm leading-relaxed text-white/65">
+                  Telefonunun kamerasıyla okut. SocioLoc yüklüyse etkinlik uygulamada açılır.
+                </p>
               </div>
             </div>
           </div>
@@ -295,7 +323,11 @@ export default async function EventDetailPage({ params }: Props) {
       <Footer />
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(ldJson) }}
+        // Başlık/açıklama kullanıcı içeriği: "</script>" ile etiketten
+        // kaçıp kod çalıştırmasın diye "<" karakteri kaçırılır.
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(ldJson).replace(/</g, "\\u003c"),
+        }}
       />
     </>
   );

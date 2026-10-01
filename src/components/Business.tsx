@@ -13,7 +13,6 @@ import {
   ArrowRight,
   Check,
 } from "lucide-react";
-import { SITE } from "@/lib/config";
 
 const TYPES = [
   {
@@ -204,12 +203,7 @@ export function Business() {
               Onay beklerken kişisel hesabın kapanmaz.
             </p>
           </div>
-          <a
-            href={SITE.appStoreUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="btn-primary text-sm h-11 px-5 shrink-0"
-          >
+          <a href="/indir" className="btn-primary text-sm h-11 px-5 shrink-0">
             Uygulamayı indir
             <ArrowRight className="size-4" />
           </a>

@@ -36,14 +36,17 @@ let _db: Firestore | null = null;
 
 /**
  * Next.js sunucu ortamında Firestore bazen WebChannel/gRPC ile düşer.
- * Long polling otomatik tespiti bu senaryoda bağlantıyı stabilize eder.
+ * Long polling bu senaryoda bağlantıyı stabilize eder.
+ *
+ * Not: `experimentalAutoDetectLongPolling` ile birlikte verilirse Firebase
+ * "cannot be used together" hatası fırlatır ve ayar hiç uygulanmaz;
+ * bu yüzden yalnızca zorunlu long polling açık.
  */
 export function getDb(): Firestore {
   if (_db) return _db;
   const app = getFirebaseApp();
   try {
     _db = initializeFirestore(app, {
-      experimentalAutoDetectLongPolling: true,
       experimentalForceLongPolling: true,
     });
   } catch {

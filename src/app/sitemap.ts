@@ -1,9 +1,18 @@
 import type { MetadataRoute } from "next";
 import { SITE } from "@/lib/config";
+import { fetchAllEvents } from "@/lib/events/fetch";
+import { parseEventStart } from "@/lib/events/types";
+import { isListable } from "@/lib/events/visibility";
 
-export default function sitemap(): MetadataRoute.Sitemap {
+/** Etkinlik URL'leri saatte bir tazelenir (ISR). */
+export const revalidate = 3600;
+
+/** /etkinlikler'deki "süresi geçmiş" eşiğiyle aynı: 3 günden eskiler girmez. */
+const RECENT_DAYS = 3;
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
-  return [
+  const pages: MetadataRoute.Sitemap = [
     { url: `${SITE.url}/`, lastModified: now, changeFrequency: "weekly", priority: 1.0 },
     { url: `${SITE.url}/etkinlikler`, lastModified: now, changeFrequency: "hourly", priority: 0.9 },
     { url: `${SITE.url}/gizlilik`, lastModified: now, changeFrequency: "yearly", priority: 0.4 },
@@ -13,4 +22,26 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${SITE.url}/mesafeli-satis`, lastModified: now, changeFrequency: "yearly", priority: 0.4 },
     { url: `${SITE.url}/ticari-elektronik-ileti`, lastModified: now, changeFrequency: "yearly", priority: 0.3 },
   ];
+
+  // Okuma hatası üretimde fırlatılır (fetch.ts → STRICT): önceki sitemap
+  // sunulmaya devam eder, etkinliksiz sürüm önbelleğe girmez.
+  const all = await fetchAllEvents(300);
+  const events: MetadataRoute.Sitemap = all
+    .filter((e) => {
+      // Yalnız herkese açık etkinlikler; kilitli, iptal ve gizli sayfalar noindex.
+      if (!isListable(e)) return false;
+      const start = parseEventStart(e);
+      return (
+        start !== null &&
+        now.getTime() - start.getTime() <= RECENT_DAYS * 86_400_000
+      );
+    })
+    .map((e) => ({
+      url: `${SITE.url}/event/${e.docId}`,
+      lastModified: e.updatedAt ?? e.createdAt ?? undefined,
+      changeFrequency: "daily" as const,
+      priority: 0.6,
+    }));
+
+  return [...pages, ...events];
 }

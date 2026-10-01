@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Calendar, MapPin, Users, Video } from "lucide-react";
-import { allParticipantCount, type EventModel } from "@/lib/events/types";
+import type { PublicEvent } from "@/lib/events/types";
+import { parseWallDate } from "@/lib/time";
 
 const TR_MONTHS_SHORT = [
   "Oca",
@@ -18,23 +19,12 @@ const TR_MONTHS_SHORT = [
 ];
 
 function formatEventDate(rawDate: string, rawTime: string): string {
-  if (!rawDate) return "";
-  try {
-    const dt = new Date(rawDate);
-    if (Number.isNaN(dt.getTime())) return "";
-    const month = TR_MONTHS_SHORT[dt.getMonth()];
-    let out = `${dt.getDate()} ${month}`;
-    if (rawTime) out += `, ${rawTime}`;
-    return out;
-  } catch {
-    return "";
-  }
-}
-
-function formatLocation(loc: string): string {
-  if (!loc) return "";
-  const i = loc.indexOf(",");
-  return i >= 0 ? loc.slice(0, i).trim() : loc;
+  // Türkiye takvim günü: sunucu (UTC) ve tarayıcı aynı metni üretir.
+  const wall = parseWallDate(rawDate);
+  if (!wall) return "";
+  let out = `${wall.day} ${TR_MONTHS_SHORT[wall.month - 1]}`;
+  if (rawTime) out += `, ${rawTime}`;
+  return out;
 }
 
 function capitalizeWords(s: string): string {
@@ -45,17 +35,17 @@ function capitalizeWords(s: string): string {
     .join(" ");
 }
 
-export function EventCard({ data }: { data: EventModel }) {
+export function EventCard({ data }: { data: PublicEvent }) {
   const dateText = formatEventDate(data.date, data.time);
   const isDigital = data.eventType === "Dijital";
-  const locationText = isDigital ? "" : formatLocation(data.location);
-  const imageUrl = data.thumbUrl || data.image;
+  const locationText = data.place;
+  const imageUrl = data.image;
   const limit = data.participantLimit;
-  const count = allParticipantCount(data);
+  const count = data.participantCount;
 
   return (
     <Link
-      href={`/event/${data.docId}`}
+      href={`/event/${data.id}`}
       className="group block focus:outline-none"
     >
       <div className="overflow-hidden rounded-2xl border border-white/[0.06] bg-surface/40 transition-all duration-300 hover:border-brand-500/40 hover:bg-surface/60">

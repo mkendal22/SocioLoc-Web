@@ -6,10 +6,13 @@ import { EventsExplorer } from "@/components/events/EventsExplorer";
 import { fetchAllEvents } from "@/lib/events/fetch";
 import { applyFilters } from "@/lib/events/filter";
 import { rankEvents } from "@/lib/events/ranking";
+import { toPublicEvent } from "@/lib/events/public";
+import { isListable } from "@/lib/events/visibility";
+import type { PublicEvent } from "@/lib/events/types";
 import { SITE } from "@/lib/config";
 
-/** Boş önbellek / build anı: her istekte Firestore'dan taze veri. */
-export const dynamic = "force-dynamic";
+/** Her istekte değil, en fazla 60 sn'de bir Firestore'dan tazelenir (ISR). */
+export const revalidate = 60;
 
 export const metadata: Metadata = {
   title: "Etkinlikler — Yakındaki sosyal etkinlikleri keşfet",
@@ -26,6 +29,32 @@ export const metadata: Metadata = {
   },
 };
 
+/**
+ * Listeyi sunucuda filtreler, sıralar ve herkese açık alanlara indirger.
+ * `renderedAt`, EventsExplorer'ın hydration'ında da aynı "şimdi" kullanılsın
+ * diye döner (ISR sayfası dakikalar önce üretilmiş olabilir).
+ */
+async function loadEvents(): Promise<{ events: PublicEvent[]; renderedAt: number }> {
+  // Okuma hatası üretimde fırlatılır (fetch.ts → STRICT): Next son başarılı
+  // sayfayı sunmaya devam eder, boş liste önbelleğe girmez.
+  const all = await fetchAllEvents(300);
+  const renderedAt = Date.now();
+  const now = new Date(renderedAt);
+  // Takipçilere özel, arşivlenmiş, gizlenmiş ve iptal edilmiş etkinlikler
+  // listeye girmez (uygulamanın keşif listesiyle aynı kural).
+  const listable = all.filter(isListable);
+  // Default filtreler: süresi geçmiş 3 günden eski gizli, eventType filtresi yok
+  const filtered = applyFilters(listable, { selectedDateFilter: "Tümü", now });
+  // Tarayıcıya yalnızca herkese açık alanlar gider (UID, konum, link yok).
+  const events = rankEvents(filtered, { now }).map(toPublicEvent);
+  if (process.env.NODE_ENV === "development") {
+    console.info(
+      `[etkinlikler] Firestore: ham=${all.length}, filtre sonrası=${filtered.length}, sıralı=${events.length}`,
+    );
+  }
+  return { events, renderedAt };
+}
+
 export default async function EtkinliklerPage() {
   const b64Len =
     process.env.FIREBASE_SERVICE_ACCOUNT_BASE64?.replace(/\s/g, "").length ?? 0;
@@ -38,21 +67,7 @@ export default async function EtkinliklerPage() {
   const showDevAdminHint =
     process.env.NODE_ENV === "development" && !serverAdminConfigured;
 
-  let events: import("@/lib/events/types").EventModel[] = [];
-  try {
-    const all = await fetchAllEvents(500);
-    // Default filtreler: süresi geçmiş 3 günden eski gizli, eventType filtresi yok
-    const filtered = applyFilters(all, { selectedDateFilter: "Tümü" });
-    events = rankEvents(filtered);
-    if (process.env.NODE_ENV === "development") {
-      console.info(
-        `[etkinlikler] Firestore: ham=${all.length}, filtre sonrası=${filtered.length}, sıralı=${events.length}`,
-      );
-    }
-  } catch (e) {
-    console.error("[etkinlikler] fetch error", e);
-    events = [];
-  }
+  const { events, renderedAt } = await loadEvents();
 
   return (
     <>
@@ -82,6 +97,7 @@ export default async function EtkinliklerPage() {
           <div className="container-x">
             <EventsExplorer
               initialEvents={events}
+              renderedAt={renderedAt}
               showDevAdminHint={showDevAdminHint}
             />
           </div>

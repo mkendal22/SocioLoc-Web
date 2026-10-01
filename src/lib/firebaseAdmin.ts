@@ -1,3 +1,4 @@
+import "server-only";
 import { readFileSync, existsSync } from "node:fs";
 import path from "node:path";
 import {
@@ -11,10 +12,13 @@ import { getFirestore, type Firestore } from "firebase-admin/firestore";
 
 let _adminDb: Firestore | null | undefined;
 
+// Servis hesabı dosyası yalnızca yerel geliştirmede kullanılır; çalışma anında
+// belirlenen yol Turbopack'in tüm projeyi sunucu paketine izlemesine yol
+// açıyordu (turbopackIgnore). Production'da base64 ortam değişkeni yeterli.
 function resolveAccountPath(): string | null {
   const p = process.env.FIREBASE_SERVICE_ACCOUNT_PATH?.trim();
   if (!p) return null;
-  return path.isAbsolute(p) ? p : path.join(process.cwd(), p);
+  return path.isAbsolute(p) ? p : path.join(/*turbopackIgnore: true*/ process.cwd(), p);
 }
 
 
@@ -29,14 +33,14 @@ export function getAdminFirestore(): Firestore | null {
       const raw = process.env.FIREBASE_SERVICE_ACCOUNT_JSON?.trim();
 
       if (accountPath) {
-        if (!existsSync(accountPath)) {
+        if (!existsSync(/*turbopackIgnore: true*/ accountPath)) {
           console.error(
             `[firebase-admin] Dosya yok: ${accountPath} (FIREBASE_SERVICE_ACCOUNT_PATH)`,
           );
           _adminDb = null;
           return null;
         }
-        const json = JSON.parse(readFileSync(accountPath, "utf8"));
+        const json = JSON.parse(readFileSync(/*turbopackIgnore: true*/ accountPath, "utf8"));
         initializeApp({ credential: cert(json as ServiceAccount) });
       } else if (b64) {
         const json = JSON.parse(Buffer.from(b64, "base64").toString("utf8"));
