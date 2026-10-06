@@ -95,7 +95,7 @@ curl -s https://www.socioloc.app/.well-known/apple-app-site-association | grep -
 ```
 
 ```bash
-curl -s https://www.socioloc.app/.well-known/assetlinks.json | grep -c "B7:83:E8"
+curl -s https://www.socioloc.app/.well-known/assetlinks.json | grep -c "D4:DB:CA:AA"
 ```
 
 ```bash

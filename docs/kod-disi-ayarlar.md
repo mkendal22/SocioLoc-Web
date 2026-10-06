@@ -49,8 +49,17 @@ Firebase'de kayıtlı diğer SHA-256 değeri (`AA:DA:29:D9:…:09:D2`) bir
 geliştirici bilgisayarındaki `debug.keystore`'a ait; assetlinks'e
 **eklenmemeli**.
 
-**Durum (29 Eyl 2026):** Play Console'daki uygulama imzalama SHA-256'sı
-teyit edildi, yukarıdaki değerle aynı. Bu depoda değişiklik gerekmiyor.
+**Düzeltme (1 Eki 2026):** 29 Eylül'deki teyit yanlıştı. Play Store'dan
+kurulu uygulamanın imzası cihazdan okundu (`adb pull` + `apksigner verify
+--print-certs`): Play uygulama imzalama sertifikasının SHA-256'sı
+`D4:DB:CA:AA:40:E1:6F:03:25:8B:11:F0:FB:9D:6D:E7:2F:42:F1:97:BE:E2:67:A5:0F:B5:5F:79:15:C5:E2:4F`
+(SHA-1 `A7:CD:0D:0C:…:5F:FD`). `B7:83:…` bu sertifikaya ait değil (büyük
+ihtimalle yükleme anahtarı). `assetlinks.json`'a D4:DB eklendi, B7:83
+zararsız olduğu için duruyor. Aynı değer Firebase'e de eklendi; Android App
+Check bununla düzeldi.
+
+**Eski durum (29 Eyl 2026, yanlış çıktı):** Play Console'daki uygulama imzalama
+SHA-256'sı teyit edildi sanılmıştı, yukarıdaki değerle aynı.
 Canlı sitedeki `assetlinks.json` ise hâlâ yer tutucu
 (`BURAYA_ANDROID_KEYSTORE_SHA256_PARMAK_IZI_GELECEK`); Google'ın doğrulama
 servisi bunu hatalı parmak izi diye reddediyor. Site bu depodan yayınlanana
