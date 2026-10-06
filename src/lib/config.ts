@@ -19,7 +19,7 @@ export const SITE = {
   url: SITE_URL,
   email: "info@socioloc.app",
   legalEmail: "yonetim@socioloc.app",
-  phone: "+90 545 963 88 08",
+  phone: "+90 549 903 69 27",
   company: {
     name: "Socioloc Teknoloji Anonim Şirketi",
     tradeRegistry: "48994",
