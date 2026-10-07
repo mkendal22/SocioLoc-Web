@@ -63,32 +63,29 @@ listesinin web karşılığı.
 yolu uygulamanın eski sürümleri de alır. Yollar: `/event/*`, `/post/*`,
 `/u/*`, `/app/*` ve eski biçimler `/user/*`, `/business/*`.
 
-- `/u/*` ve `/app/*` mobil sürümden önce canlıda olmalı (bkz. "Yayın
-  sırası"). Yeni sürüm işletme profilini `/u/{uid}` olarak paylaşıyor; yol
-  sahiplenilmezse uygulaması olan iPhone kullanıcısı App Store'a düşer (eski
-  `/business/*` uygulamayı açıyordu).
-- Eski sürümler `/u/…` ve `/app/…` linkinde uygulamayı ana sayfada açar;
-  hedefi bilmez ama çökmez.
+- Yeni bir yol, onu paylaşan mobil sürümden önce canlı AASA'da olmalı (bkz.
+  "Yayın sırası"). Yeni sürüm işletme profilini `/u/{uid}` olarak paylaşıyor;
+  yol sahiplenilmeseydi uygulaması olan iPhone kullanıcısı App Store'a
+  düşerdi (eski `/business/*` uygulamayı açıyordu).
+- Eski sürümler (1.0.25 ve öncesi) `/u/…` ve `/app/…` linkinde uygulamayı
+  açar ama hedef ekrana gitmez; çökmez. 7 Ekim 2026'da Play'de 1.0.27, App
+  Store'da 1.0.25 var: iPhone'da bu linkler 1.0.27 yayınlanana kadar hedefe
+  gitmiyor.
 - Android'de yollar uygulamanın prod manifestinde (`android/app/src/prod/
   AndroidManifest.xml`), sürümle birlikte gelir. Yalnız `www.socioloc.app`
   sahiplenilir: apex `.well-known` dosyalarını www'ye yönlendiriyor ve Android
   doğrulaması yönlendirme izlemez.
-- `assetlinks.json`: canlı sitede henüz yer tutucu var; bu depodaki parmak izi
-  (Play uygulama imzalama anahtarı) yayında olmadan Android App Links
-  doğrulanmaz.
+- `assetlinks.json`, Play uygulama imzalama anahtarının parmak izini
+  (`D4:DB:CA:AA…`) taşıyor ve canlıda; Google'ın doğrulama servisi
+  `linked: true` dönüyor (7 Ekim 2026). Parmak izinin kaynağı:
+  `docs/kod-disi-ayarlar.md` madde 2.
 
 ## Yayın sırası
 
-Canlı site (www.socioloc.app) başka bir depodan yayınlanıyor; bu depodaki
-derin link değişiklikleri canlıya ancak oraya taşınınca (ya da site bu
-depodan yayınlanınca) çıkar. 30 Eylül 2026'da canlıda AASA yalnız
-`/event/*` içeriyor, `assetlinks.json` yer tutucu, `/indir`, `/u/…`,
-`/app/…` ve `/event/{id}/…` 404.
-
-Uygulamanın yeni sürümü bu adresleri paylaşıyor (profil `/u/{uid}`, davet
-`/indir`). Bu yüzden **web, mobil sürüm mağazaya gönderilmeden önce**
-canlıda olmalı: AASA, `assetlinks.json`, uygulama kapısı rotaları ve
-`/indir`. Mobil sürümden önce kontrol:
+Uygulama, paylaştığı adreslerin (profil `/u/{uid}`, davet `/indir`) web'de
+hazır olduğunu varsayar. Bu yüzden **web, o adresleri paylaşan mobil sürüm
+mağazaya gönderilmeden önce** canlıda olmalı: AASA, `assetlinks.json`,
+uygulama kapısı rotaları ve `/indir`. Mobil sürümden önce kontrol:
 
 ```bash
 curl -s https://www.socioloc.app/.well-known/apple-app-site-association | grep -c '"/u/\*"'
@@ -103,6 +100,15 @@ curl -s -o /dev/null -w "%{http_code}\n" -A "Mozilla/5.0 (iPhone; CPU iPhone OS 
 ```
 
 İlk ikisi 1, üçüncüsü 302 dönmeli.
+
+Durum (7 Ekim 2026): üç kontrol de beklenen sonucu veriyor ve canlı sitenin
+içeriği bu deponun `main` dalıyla aynı. 30 Eylül 2026'da canlıda AASA yalnız
+`/event/*` içeriyordu, `assetlinks.json` yer tutucuydu, `/indir`, `/u/…`,
+`/app/…` ve `/event/{id}/…` 404 veriyordu; bu fark kapandı.
+
+Sitenin hangi depodan ve nasıl yayınlandığı Vercel ayarında durur, bu depodan
+görülmez. `main`'e giren bir derin link değişikliğinin canlıya çıktığını
+yukarıdaki komutlarla doğrula.
 
 ## Deneme
 

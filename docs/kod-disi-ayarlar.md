@@ -1,11 +1,28 @@
 # Kod dışı ayarlar: kontrol listesi
 
-`fix/site-iyilestirmeleri` branch'indeki değişikliklerin tam etkisi için kod
-dışında yapılması gereken ayarlar. Her maddede kim, nerede ve nasıl
-doğrulanacağı yazıyor.
+Sitenin ve derin linklerin tam çalışması için kod dışında yapılması gereken
+ayarlar. Her maddede kim, nerede ve nasıl doğrulanacağı yazıyor.
 
-> Canlı site bu repodan değil, başka bir repodan deploy ediliyor. Önce bu
-> branch'in o repoya taşınması gerekiyor (bkz. madde 8).
+## Durum (7 Ekim 2026)
+
+`fix/site-iyilestirmeleri` dalı `main`'e birleşti (PR #1) ve canlı sitenin
+içeriği `main` ile aynı. Aşağıdaki durumlar canlı siteye yapılan sorgularla
+ölçüldü; "bakılmadı" yazanlar ölçülmedi.
+
+| Madde | Durum |
+|---|---|
+| 1. Apex alan adı | Açık: hâlâ 307, `/.well-known` dahil. Derin linkleri engellemiyor |
+| 2. SHA-256 parmak izi | Tamam: canlıda, Google doğruluyor |
+| 3. iOS Associated Domains | Tamam: değişiklik gerekmiyor |
+| 4. Firebase Admin değişkeni | Tamam: etkinlik sayfaları ve sitemap veri dönüyor |
+| 5. Firebase web yapılandırması | Bakılmadı (düşük öncelik) |
+| 6. Cloudflare proxy | Açık: yanıtlar hâlâ Cloudflare'den geçiyor |
+| 7. CSP zorunlu mod | Açık: canlıda hâlâ rapor modunda |
+| 8. Canlı repoya taşıma | Tamam |
+| 9. Arama motorları | Bakılmadı (opsiyonel) |
+| 10. App Store kampanya ölçümü | Tanımlı değil (opsiyonel) |
+| 11. Kapı önbelleğe alınmamalı | Tamam: `cf-cache-status: DYNAMIC` |
+| 12. AASA yolları | Tamam: canlıda |
 
 ## 1. Vercel: apex alan adını projeye bağla
 
@@ -13,8 +30,18 @@ doğrulanacağı yazıyor.
 
 Şu an `socioloc.app` → `www.socioloc.app` yönlendirmesini Vercel alan adı
 ayarı yapıyor: 307 (geçici) ve `/.well-known` dosyaları dahil her şeyi
-yönlendiriyor. Apple ve Google doğrulama dosyalarında yönlendirme izlemediği
-için `socioloc.app` üzerinden derin link doğrulaması başarısız oluyor.
+yönlendiriyor. Derin linkler bu haliyle de çalışıyor (7 Eki 2026):
+
+- Google doğrulamada yönlendirme izlemiyor; apex için Digital Asset Links
+  sorgusu `ERROR_CODE_REDIRECT` veriyor. Uygulamanın Android manifesti yalnız
+  `www.socioloc.app` adresini sahiplendiği için engel değil.
+- Apple'ın CDN'i apex için de dosyayı veriyor (`Apple-From` başlığında önce
+  apex, sonra www adresi). Apple dosyanın yönlendirmesiz sunulmasını şart
+  koştuğu için buna güvenilmemeli.
+- Uygulamanın paylaştığı linkler hep `www.socioloc.app` ile başlıyor.
+
+Madde, apex yönlendirmesinin kalıcı (308) olması ve doğrulama dosyalarının
+iki alan adında da yönlendirmesiz sunulması için hâlâ yapılmalı.
 
 1. Vercel → Project → Settings → Domains → `socioloc.app`: "Redirect to
    www.socioloc.app" yerine doğrudan Production'a bağla. `www.socioloc.app`
@@ -34,36 +61,37 @@ curl -sI https://socioloc.app/.well-known/assetlinks.json | grep -i "^HTTP"
 # → 200
 ```
 
+7 Eki 2026'da ikisi de 307 dönüyor.
+
 ## 2. Play Console: SHA-256 parmak izini teyit et
 
 **Kim:** Mobil ekip (Play Console erişimi olan)
 
-`public/.well-known/assetlinks.json` dosyasına, Firebase'deki Android
-uygulamasına kayıtlı ve debug olmayan tek SHA-256 değeri yazıldı:
+Canlıdaki `assetlinks.json` aşağıdaki iki değeri taşıyor ve Google'ın
+doğrulama servisi Play imzasıyla `linked: true` dönüyor (7 Eki 2026). Bu
+ölçüm Google'ın servisiyle yapıldı; cihazda `pm get-app-links` çıktısına
+bakılmadı.
 
-```
-B7:83:E8:E8:8C:EC:B7:A1:8B:AF:13:AF:86:9B:1A:E9:B6:96:78:57:1C:68:F5:04:75:0D:E5:91:65:90:D9:58
-```
+- `D4:DB:CA:AA:40:E1:6F:03:25:8B:11:F0:FB:9D:6D:E7:2F:42:F1:97:BE:E2:67:A5:0F:B5:5F:79:15:C5:E2:4F`:
+  Play uygulama imzalama sertifikası (SHA-1 `A7:CD:0D:0C:…:5F:FD`). Play
+  Store'dan kurulu uygulamanın imzası cihazdan okunarak bulundu (`adb pull` +
+  `apksigner verify --print-certs`, 1 Eki 2026). Aynı değer Firebase'e de
+  eklendi; Android App Check bununla düzeldi.
+- `B7:83:E8:E8:8C:EC:B7:A1:8B:AF:13:AF:86:9B:1A:E9:B6:96:78:57:1C:68:F5:04:75:0D:E5:91:65:90:D9:58`:
+  Firebase'deki Android uygulamasına kayıtlı, debug olmayan değer. Play
+  imzalama sertifikasına ait değil (büyük ihtimalle yükleme anahtarı);
+  zararsız olduğu için duruyor.
 
 Firebase'de kayıtlı diğer SHA-256 değeri (`AA:DA:29:D9:…:09:D2`) bir
 geliştirici bilgisayarındaki `debug.keystore`'a ait; assetlinks'e
 **eklenmemeli**.
 
-**Düzeltme (1 Eki 2026):** 29 Eylül'deki teyit yanlıştı. Play Store'dan
-kurulu uygulamanın imzası cihazdan okundu (`adb pull` + `apksigner verify
---print-certs`): Play uygulama imzalama sertifikasının SHA-256'sı
-`D4:DB:CA:AA:40:E1:6F:03:25:8B:11:F0:FB:9D:6D:E7:2F:42:F1:97:BE:E2:67:A5:0F:B5:5F:79:15:C5:E2:4F`
-(SHA-1 `A7:CD:0D:0C:…:5F:FD`). `B7:83:…` bu sertifikaya ait değil (büyük
-ihtimalle yükleme anahtarı). `assetlinks.json`'a D4:DB eklendi, B7:83
-zararsız olduğu için duruyor. Aynı değer Firebase'e de eklendi; Android App
-Check bununla düzeldi.
+Geçmiş: 29 Eylül 2026'da dosyaya yalnız `B7:83:…` yazılmış ve Play imzası
+sanılmıştı; 1 Ekim'de yanlış olduğu anlaşıldı. O tarihte canlı dosya yer
+tutucuydu (`BURAYA_ANDROID_KEYSTORE_SHA256_PARMAK_IZI_GELECEK`) ve Google
+reddediyordu.
 
-**Eski durum (29 Eyl 2026, yanlış çıktı):** Play Console'daki uygulama imzalama
-SHA-256'sı teyit edildi sanılmıştı, yukarıdaki değerle aynı.
-Canlı sitedeki `assetlinks.json` ise hâlâ yer tutucu
-(`BURAYA_ANDROID_KEYSTORE_SHA256_PARMAK_IZI_GELECEK`); Google'ın doğrulama
-servisi bunu hatalı parmak izi diye reddediyor. Site bu depodan yayınlanana
-ya da canlı dosya düzeltilene kadar Android App Links doğrulanmaz.
+Yeniden teyit etmek için ya da anahtar değişirse:
 
 1. Play Console → SocioLoc → Uygulama bütünlüğü (App integrity) → Uygulama
    imzalama → "Uygulama imzalama anahtarı sertifikası" altındaki SHA-256.
@@ -83,8 +111,9 @@ ya da canlı dosya düzeltilene kadar Android App Links doğrulanmaz.
 **Kim:** Mobil ekip. **Değişiklik gerekmiyor.**
 
 `ios/Runner/RunnerRelease.entitlements` zaten `applinks:socioloc.app` ve
-`applinks:www.socioloc.app` içeriyor. www için doğrulama bugün de çalışıyor.
-Apex için 1. madde tamamlanınca çalışır.
+`applinks:www.socioloc.app` içeriyor. Apple CDN iki alan adı için de güncel
+dosyayı (altı yol) veriyor (7 Eki 2026). Apex, Apple CDN yönlendirmeyi
+izlediği için çalışıyor; kalıcı çözüm 1. madde.
 
 **Doğrulama:** `https://app-site-association.cdn-apple.com/a/v1/www.socioloc.app`
 (Apple CDN'in önbelleğe aldığı dosya; güncellenmesi 24–48 saat sürebilir).
@@ -152,16 +181,19 @@ ihlali görülmezse `next.config.ts`'te anahtar
 
 **Kim:** Melik + Can
 
-Canlıdaki kod bu repodan farklı:
+Tamamlandı (7 Eki 2026 ölçümü): canlı sitenin içeriği bu deponun `main`
+dalıyla aynı.
 
-- www canonical adresleri iki tarafta da var.
-- Canlıdaki sitemap tüm etkinlikleri listeliyor; bu branch yalnızca
-  yaklaşanları (son 3 gün dahil) ve herkese açık olanları listeliyor.
-- Canlıda `/post/:id` ana sayfaya yönleniyor; bu kural kaldırılmalı. Bu
-  branch'te `/post/{id}` uygulama kapısına gidiyor (`docs/deeplink.md`).
+- AASA altı yolu içeriyor, `assetlinks.json` gerçek parmak izlerini taşıyor.
+- `/post/{id}` artık ana sayfaya yönlenmiyor; `/u/…`, `/app/…` ve
+  `/event/{id}/…` ile birlikte uygulama kapısına gidiyor
+  (`docs/deeplink.md`). `/indir` çalışıyor.
+- Sitemap'teki dört etkinliğin hepsi yaklaşan etkinlik.
+- Son commit'teki (`9f60fc3`) destek telefonu yayında, eski numara yok.
 
-Taşımadan önce iki repo karşılaştırılmalı. Bu branch'in commit'leri
-birbirinden bağımsız olduğu için tek tek cherry-pick edilebilir.
+Sitenin hangi depodan ve nasıl yayınlandığı Vercel ayarında durur, bu depodan
+görülmez. `main`'e giren bir değişikliğin canlıya çıktığını
+`docs/deeplink.md` "Yayın sırası" altındaki komutlarla doğrula.
 
 ## 9. Arama motorları (opsiyonel)
 
@@ -202,13 +234,13 @@ curl -sI -A "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X)" https://www
 
 ## 12. AASA yolları mobil sürümden önce
 
-**Kim:** Web ekibi, mobil sürüm mağazaya gönderilmeden önce (canlı site
-başka depodan yayınlanıyor; değişiklik oraya taşınmalı, bkz.
-`docs/deeplink.md` "Yayın sırası")
+**Kim:** Web ekibi, yeni bir yol paylaşan mobil sürüm mağazaya gönderilmeden
+önce (bkz. `docs/deeplink.md` "Yayın sırası")
 
-AASA artık `/u/*`, `/app/*` ve `/user/*` yollarını da içeriyor (29 Eyl 2026
-kararı; önceki plan bunları yeni sürüm yaygınlaşınca eklemekti). Neden: yeni
-sürüm işletme profilini `/u/{uid}` olarak paylaşıyor. Yol sahiplenilmezse
-uygulaması olan iPhone kullanıcısı App Store'a düşer; bugün `/business/*`
-uygulamayı açıyor. Eski sürümler bu yollarda uygulamayı ana sayfada açar,
-çökmez (bkz. `docs/deeplink.md`).
+AASA `/u/*`, `/app/*` ve `/user/*` yollarını da içeriyor ve canlıda (29 Eyl
+2026 kararı; önceki plan bunları yeni sürüm yaygınlaşınca eklemekti). Neden:
+yeni sürüm işletme profilini `/u/{uid}` olarak paylaşıyor. Yol
+sahiplenilmeseydi uygulaması olan iPhone kullanıcısı App Store'a düşerdi;
+eski `/business/*` uygulamayı açıyordu. Eski sürümler (1.0.25 ve öncesi) bu
+yollarda uygulamayı açar ama hedef ekrana gitmez, çökmez (bkz.
+`docs/deeplink.md`).
