@@ -27,7 +27,7 @@ export function eventMetadata(id: string, ev: EventModel | null): Metadata {
 
   // Takipçilere özel ya da arşivlenmiş: önizlemede yalnız genel başlık.
   if (visibility === "locked") {
-    const ogImage = `${SITE.url}/og.png`;
+    const ogImage = `${SITE.url}${SITE.ogImage}`;
     return {
       title: LOCKED_TITLE,
       description: LOCKED_DESCRIPTION,
@@ -55,7 +55,7 @@ export function eventMetadata(id: string, ev: EventModel | null): Metadata {
   const cancelled = visibility === "cancelled";
   const title = `${cancelled ? "İptal edildi: " : ""}${ev.title || "Etkinlik"}`;
   const desc = ev.description?.slice(0, 160) || "SocioLoc'ta bu etkinliğe göz at ve katıl.";
-  const image = ev.thumbUrl || ev.image || `${SITE.url}/og.png`;
+  const image = ev.thumbUrl || ev.image || `${SITE.url}${SITE.ogImage}`;
 
   return {
     title,

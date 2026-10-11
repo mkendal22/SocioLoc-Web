@@ -24,6 +24,9 @@
 .DS_Store
 *.pem
 
+# IDE (JetBrains) — panel ve uygulama deposuyla aynı
+.idea/
+
 # Local-only assets (mockups, store screenshots, vb.)
 /ScreenShot/
 

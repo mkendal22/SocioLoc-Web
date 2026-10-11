@@ -111,7 +111,7 @@ a:focus-visible{outline:2px solid #a78bfa;outline-offset:2px}
 function gatePage(link: LinkMatch, utm: Utm, play: string): string {
   const { title, description } = COPY[link.kind];
   const pageUrl = `${SITE.url}${link.path}`;
-  const ogImage = `${SITE.url}/og.png`;
+  const ogImage = `${SITE.url}${SITE.ogImage}`;
   return `<!doctype html>
 <html lang="tr">
 <head>

@@ -26,6 +26,13 @@ export const metadata: Metadata = {
     url: `${SITE.url}/etkinlikler`,
     siteName: SITE.name,
     type: "website",
+    // Sayfa kendi openGraph'ını tanımlayınca kök layout'taki görsel MİRAS
+    // ALINMIYOR (Next metadata birleştirmesi sığ) → paylaşımda görsel çıkmıyordu.
+    images: [{ url: SITE.ogImage, width: 1200, height: 630, alt: "SocioLoc" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    images: [SITE.ogImage],
   },
 };
 

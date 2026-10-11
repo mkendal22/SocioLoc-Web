@@ -17,6 +17,10 @@ export const SITE = {
   name: "SocioLoc",
   domain: "socioloc.app",
   url: SITE_URL,
+  /** Paylaşım görseli. 11 Eki 2026'da 1200×630'a değişti: WhatsApp / Facebook / X görseli
+   *  ADRESE göre önbelleğe aldığı için aynı `/og.png` eski dikey görseli göstermeyi sürdürür
+   *  → sürüm parametresi; görsel her değiştiğinde artırın. */
+  ogImage: "/og.png?v=20261011",
   email: "info@socioloc.app",
   legalEmail: "yonetim@socioloc.app",
   phone: "+90 549 903 69 27",

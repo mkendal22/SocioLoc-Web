@@ -46,7 +46,7 @@ export const metadata: Metadata = {
       "Yakınındaki etkinlikleri haritada keşfet, anlık sohbet et ve gerçek hayatta tanış.",
     images: [
       {
-        url: "/og.png",
+        url: SITE.ogImage,
         width: 1200,
         height: 630,
         alt: "SocioLoc",
@@ -58,7 +58,7 @@ export const metadata: Metadata = {
     title: "SocioLoc — Etkinlikleri keşfet, tanış",
     description:
       "Yakınındaki etkinlikleri haritada keşfet, anlık sohbet et, tanış.",
-    images: ["/og.png"],
+    images: [SITE.ogImage],
   },
   icons: {
     icon: "/favicon.ico",
